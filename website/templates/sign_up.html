@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        padding-top: 0; /* Remove padding-top to align navbar to top */
+        margin: 0;
+        font-family: 'Roboto', sans-serif; /* Apply the font to the body */
+        overflow: hidden; /* Prevent scrollbars from appearing */
+    }
+
+    .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("{{ url_for('static', filename='schoolbg.jpg') }}") no-repeat center center;
+        background-size: cover; /* Ensure the image covers the entire background */
+        filter: blur(2px); /* Apply the blur effect */
+        z-index: -1; /* Send the background behind other content */
+    }
+
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh; /* Full viewport height */
+        animation: fadeInUp 1s ease-out;
+        position: relative; /* Position relative to contain the form box */
+    }
+
+    .form-box {
+        background-color: rgba(255, 255, 255, 0.9); /* White background with slight opacity */
+        padding: 20px;
+        border-radius: 10px; /* Rounded corners */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Elevation effect */
+        width: 100%;
+        max-width: 400px; /* Max width of the form */
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .form-group {
+        margin-top: 20px; /* Add margin for form fields */
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .form-control {
+        width: 100%; /* Full width for input fields */
+        padding: 10px;
+        border-radius: 5px; /* Rounded corners for input fields */
+        border: 1px solid #ddd; /* Light border for input fields */
+    }
+
+    .btn-primary {
+        width: 100%; /* Full width for the button */
+        padding: 10px;
+        border-radius: 5px; /* Rounded corners for the button */
+        background-color: #007bff; /* Primary button color */
+        color: #fff; /* Text color */
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3; /* Darker shade on hover */
+    }
+
+    .form-box h3 {
+        font-family: 'Roboto', sans-serif; /* Apply the font to the header */
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: scale(0.8);
+        }
+        to {
+            transform: scale(1);
+        }
+    }
+</style>
+
+<div class="background"></div>
+<div class="login-container">
+    <div class="form-box">
+        <h3>Sign Up</h3>
+        <form method="POST">
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select class="form-control" id="role" name="role">
+                    <option value="" disabled selected hidden>Role</option>
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email"/>
+            </div>
+            <div class="form-group">
+                <label for="password1">Password</label>
+                <input type="password" class="form-control" id="password1" name="password1" placeholder="Enter Password"/>
+            </div>
+            <div class="form-group">
+                <label for="password2">Password (Confirm)</label>
+                <input type="password" class="form-control" id="password2" name="password2" placeholder="Confirm Password"/>
+            </div>
+            <br />
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

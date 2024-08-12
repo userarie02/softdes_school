@@ -1,0 +1,948 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+
+<style>
+    body {
+        margin: 0; /* Remove default margin */
+        padding: 0; /* Remove default padding */
+    }
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        background-color: #78b1f3;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px;
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.356);
+        position: fixed;
+        top: 55px; /* Adjust based on navbar height */
+        left: 0;
+        z-index: 99; /* Ensure sidebar is behind navbar */
+
+        overflow-y: auto; /* Enable vertical scrolling */
+        overflow-x: hidden; /* Prevent horizontal scrolling */
+        /* Optional: Add some space at the bottom to indicate more content */
+        padding-bottom: 20px;
+    }
+    .logout-button {
+        margin-top: auto; /* Push the logout button to the bottom of the sidebar */
+        padding-bottom: 20px; /* Ensure there's space at the bottom */
+        width: 100%; /* Full width of sidebar */
+    }
+    
+    .sidebar button {
+        font-size: 1.1rem;
+        border: none;
+        outline: none;
+        padding: 10px;
+        margin-bottom: 10px;
+        background-color: #78b1f3;
+        border-radius: 7px;
+        color: rgb(255, 255, 255);
+        display: flex;
+        align-items: center;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+        font-family: 'Open Sans', sans-serif; 
+    }
+    .sidebar button i {
+        margin-left: 10px;
+        width: 20px; /* Adjust icon width as needed */
+    }
+    .sidebar button:hover {
+        background-color: #3870b1;
+        color: white;
+    }
+    .content {
+        margin-left: 250px; /* Adjust based on sidebar width */
+        padding: 20px;
+        margin-top: 55px; /* Same as navbar height */
+    }
+    .alert {
+        position: fixed;
+        top: 50px;
+        right: 0;
+        width: calc(100% - 250px); /* Adjust based on sidebar width */
+        z-index: 100;
+    }
+    /* Adjust the width of the student info container */
+    .student-info-container {
+        width: 100%; /* Full width */
+        max-width: 100%; /* Ensure full container width */
+        margin: 0 auto; /* Center horizontally */
+        padding: 20px; /* Add padding */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Shadow */
+        background-color: #ffffff; /* Background color */
+        border-radius: 8px; /* Rounded corners */
+        
+    }
+    /* Adjust the width of the form fields */
+    .student-info-field {
+        width: 100%; /* Make the input fields take up the full width of their container */
+    }
+    /* Adjusting row alignment */
+    .form-group.row {
+        margin-bottom: 1rem; /* Space between fields */
+    }
+    .card-header {
+        padding: 10px; /* Add padding inside header */
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.247);
+        font-family: 'Open Sans', sans-serif;
+        text-align: center;
+    }
+    .card-body {
+        padding: 15px; /* Add padding inside body */
+    }
+    #student-info-form,
+    #add-level-form,
+    #add-schedule-form,
+    #add-subject-form,
+    #create-section-form,
+    #add-announcement-container {
+        /* add these common class */
+        padding: 20px;
+        margin-top: 20px;
+    }
+    .form-container {
+        padding: 15px; /* Adjust padding if needed */
+        border: 1px solid #ddd; /* Optional: Add a border */
+        border-radius: 5px; /* Optional: Add rounded corners */
+        background-color: #f9f9f9; /* Optional: Background color */
+        margin-bottom: 20px; /* Add space below the form */
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.247);
+    }
+    .table-container {
+        padding: 15px; /* Adjust padding if needed */
+        border: 1px solid #ddd; /* Optional: Add a border */
+        border-radius: 5px; /* Optional: Add rounded corners */
+        background-color: #f9f9f9; /* Optional: Background color */
+        margin-bottom: 20px; /* Add space below the table */
+        box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.247);
+    }
+    #announcements-wrapper {
+        position: relative; /* Allows positioning of the close button */
+    }
+    /* Style for the close button */
+    #close-announcements-btn {
+        position: absolute; /* Position relative to the container */
+        top: 10px; /* Distance from the top */
+        right: 10px; /* Distance from the right */
+        background: transparent; /* Transparent background */
+        border: none; /* No border */
+        font-size: 24px; /* Font size for the X */
+        color: #333; /* Color for the X */
+        cursor: pointer; /* Pointer cursor on hover */
+    }
+
+    #close-announcements-btn:hover {
+        color: #dc3545; /* Red color on hover */
+    }
+    
+    
+    /* Style for the announcements container */
+    #announcements-container {
+        position: relative; /* Required for positioning the close button */
+        display: none;
+        max-height: 400px; /* Maximum height before scrolling is enabled */
+        margin-left: 20px; /* Space below the button container */
+        overflow-y: auto; /* Scroll vertically if content overflows */
+        border: 1px solid #ddd; /* Light gray border for visual separation */
+        border-radius: 5px; /* Rounded corners */
+        background-color: #fff; /* White background */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        padding: 15px; /* Padding inside the container */
+        transition: max-height 0.5s ease-out; /* Smooth transition for height change */
+    }
+
+    /* Style for individual announcement containers */
+    .announcement-item {
+        position: relative; /* Allow absolute positioning of buttons within */
+        margin-bottom: 15px; /* Space between announcements */
+        padding: 10px;
+        border-bottom: 1px solid #ddd; /* Border between announcement items */
+        background-color: #f0e68c; /* Light yellow background */
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        border-radius: 5px; /* Rounded corners */
+        font-family: 'Open Sans', sans-serif; 
+    }
+
+    /* Style for the announcement header */
+    .announcement-header {
+        padding-left: 15px; /* Padding on the left for title and actions */
+    }
+
+    /* Style for the announcement title */
+    .announcement-header h3 {
+        margin: 0 0 5px; /* Margin for the title */
+        font-size: 1.2em; /* Slightly larger font size for the title */
+    }
+
+    /* Style for the announcement description */
+    .announcement-body {
+        padding-left: 15px; /* Padding on the left for description */
+        margin: 0 0 10px; /* Margin for the description */
+    }
+
+    /* Style for announcement actions (edit and delete buttons) */
+    .announcement-actions {
+        position: absolute; /* Position the buttons absolutely within the container */
+        right: 15px; /* Distance from the right edge */
+        top: 15px; /* Distance from the top edge */
+    }
+
+    /* Style for the edit button */
+    .btn-edit {
+        color: #141313; /* White text color */
+        padding: 5px 10px; /* Add some padding */
+        border: none; /* Remove default border */
+        cursor: pointer; /* Change cursor to pointer on hover */
+        margin-right: 5px; /* Space between edit and delete buttons */
+    }
+
+    /* Style for the delete button */
+    .btn-delete { 
+        color: #141313; /* White text color */
+        padding: 5px 10px; /* Add some padding */
+        border: none; /* Remove default border */
+        cursor: pointer; /* Change cursor to pointer on hover */
+    }
+    /* Style for the buttons container */
+    #announcement-buttons {
+        display: block; /* Ensure the container is displayed */
+        margin-bottom: 20px; /* Space below the button container */
+        margin-left: 20px; /* Space below the button container */
+    }
+    /* Style for the show announcements button */
+    #show-announcement-btn {
+        background-color: #f0e68c; /* Light yellow background */
+        color: #333; /* Dark text color for readability */
+        padding: 10px 20px; /* Add some padding */
+        border: none; /* Remove default border */
+        border-radius: 5px; /* Rounded corners */
+        cursor: pointer; /* Change cursor to pointer on hover */
+        text-align: center; /* Center text */
+        font-size: 1em; /* Font size */
+        transition: background-color 0.3s ease; /* Smooth background color transition */
+        font-family: 'Open Sans', sans-serif; 
+    }
+
+    #show-announcement-btn:hover {
+        background-color: #e1d4a0; /* Slightly darker yellow on hover */
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3; /* Darker blue background on hover */
+    }
+
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="sidebar">
+                <button id="student-info-btn" class="btn btn-primary btn-block mb-3">Student Info<i class="fa fa-user"></i></button>
+                <button id="announcements-btn" class="btn btn-primary btn-block mb-3">Announcements<i class="fa fa-bell"></i></button>
+                <button id="add-level-btn" class="btn btn-primary btn-block mb-3">Add Level<i class="fa fa-plus"></i></button>
+                <button id="add-schedule-btn" class="btn btn-primary btn-block mb-3">Add Schedule<i class="fa fa-plus"></i></button>
+                <button id="add-subject-btn" class="btn btn-primary btn-block mb-3">Add Subject<i class="fa fa-plus"></i></button>
+                <button id="create-section-btn" class="btn btn-primary btn-block mb-3">Create Section Entry<i class="fa fa-calendar-plus"></i></button>
+                <button id="subjects-btn" class="btn btn-primary btn-block mb-3">Section<i class="fas fa-book-open"></i></button>
+
+                <!-- logout button at the bottom of the sidebar -->
+               <div class="logout-button">
+                    {% if current_user.is_authenticated %}
+                        <form action="{{ url_for('auth.logout') }}" method="post">
+                           <button type="submit" class="btn btn-danger">Log Out
+                                <i class="fa fa-sign-out"></i>
+                           </button>
+                        </form>
+                     {% endif %}
+                </div>
+            </div>
+        </div>
+
+            <!-- Content area -->
+            <div class="col-md-9">
+                <div id="alerts">
+                    {% with messages = get_flashed_messages(with_categories=True) %}
+                        {% if messages %}
+                            <div class="alert-container">
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }}">
+                                        {{ message }}
+                                        <button type="button" class="close" data-dismiss="alert">
+                                            <span aria-hidden="true">&times;</span>
+                                          </button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+
+            <!-- STUDENT INFO SECTION -->
+              
+            <div id="student-info-container" class="student-info-container" style="display: none;">
+                <div class="card-header">
+                    <h2>Student Information</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('views.admin_dashboard') }}">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" name="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="middle_name">Middle Name</label>
+                            <input type="text" class="form-control" id="middle_name" name="middle_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="first_name">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="suffix">Suffix</label>
+                            <input type="text" class="form-control" id="suffix" name="suffix">
+                        </div>
+                        <div class="form-group">
+                            <label for="date_of_birth">Date of Birth</label>
+                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select class="form-control" id="gender" name="gender">
+                                <option value="" disabled selected>Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="nationality">Nationality</label>
+                            <input type="text" class="form-control" id="nationality" name="nationality">
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <input type="text" class="form-control" id="address" name="address">
+                        </div>
+                        <div class="form-group">
+                            <label for="parent_guardian_name">Parent/Guardian Name</label>
+                            <input type="text" class="form-control" id="parent_guardian_name" name="parent_guardian_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="relationship_to_student">Relationship to Student</label>
+                            <input type="text" class="form-control" id="relationship_to_student" name="relationship_to_student">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact_number">Contact Number</label>
+                            <input type="text" class="form-control" id="contact_number" name="contact_number">
+                        </div>
+                        <div class="form-group">
+                            <label for="email_gp">Email (Guardian/Parent)</label>
+                            <input type="email" class="form-control" id="email_gp" name="email_gp">
+                        </div>
+                        <div class="form-group">
+                            <label for="emergency_contact_name">Emergency Contact Name</label>
+                            <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="emergency_relationship">Emergency Relationship</label>
+                            <input type="text" class="form-control" id="emergency_relationship" name="emergency_relationship">
+                        </div>
+                        <div class="form-group">
+                            <label for="emergency_contact_number">Emergency Contact Number</label>
+                            <input type="text" class="form-control" id="emergency_contact_number" name="emergency_contact_number">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="add-announcement-container" style="display: none;">
+                <div class="form-container">
+                    <h2>Add Announcement</h2>
+                    <form method="post" action="{{ url_for('views.admin_dashboard') }}">
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input type="text" id="title" name="title" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Announcement</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Buttons to toggle visibility -->
+            <div id="announcement-buttons" style="display: none;">
+                <button id="show-announcement-btn" class="btn btn-primary">Show Announcements</button>
+                <!-- Add your existing button here if needed -->
+            </div>
+            
+            <!-- Container for Existing Announcements -->
+            <div id="announcements-wrapper">
+                <div id="announcements-container" style="display: none;">
+                    <button id="close-announcements-btn" class="btn btn-close">&times;</button>
+                    <div class="container">
+                        <h3>Existing Announcements</h3>
+                        {% for announcement in announcements_admin %}
+                            <div class="announcement-item">
+                                <div class="announcement-header">
+                                    <h3>{{ announcement.title }}</h3>
+                                    <div class="announcement-actions">
+                                        <form action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: inline;">
+                                            <input type="hidden" name="announcement_id" value="{{ announcement.id }}">
+                                            <button type="submit" class="delete-button btn btn-delete">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                        <!-- Edit Button -->
+                                        <button class="edit-button btn btn-edit" onclick="editAnnouncement('{{ announcement.id }}', '{{ announcement.title }}', '{{ announcement.description }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="announcement-body">
+                                    <p>{{ announcement.description }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Edit Announcement Form (Initially Hidden) -->
+            <div id="edit-announcement-container" style="display: none;">
+                <div class="form-container">
+                    <h2>Edit Announcement</h2>
+                    <form method="post" action="{{ url_for('views.admin_dashboard') }}">
+                        <input type="hidden" id="edit_announcement_id" name="edit_announcement_id">
+                        <div class="form-group">
+                            <label for="edit_title">Title</label>
+                            <input type="text" id="edit_title" name="edit_title" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_description">Description</label>
+                            <textarea id="edit_description" name="edit_description" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Announcement</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideEditForm()">Cancel</button>
+                    </form>
+                </div>
+            </div>
+                
+            <!-- Add Level Form -->
+            <div id="add-level-form" style="display: none;">
+                <div class="form-container">
+                    <h2>Add Level</h2>
+                    <form method="post" action="{{ url_for('views.admin_dashboard') }}">
+                        <div class="form-group">
+                            <input type="text" id="level_name" name="level_name" class="form-control" placeholder="Enter Level Name" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Level</button>
+                    </form>
+                </div>
+            <!-- Container for Levels Table -->
+            <div class="table-container mt-4">
+                <h3>Existing Levels</h3>
+                <table class="table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Level Name</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for level in levels %}
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">{{ level.name }}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">
+                                <form action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: inline;">
+                                    <input type="hidden" name="edit_level_id" value="{{ level.id }}">
+                                    <input type="text" name="edit_level_name" value="{{ level.name }}" placeholder="Edit Level Name" required>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: inline;">
+                                    <input type="hidden" name="delete_level_id" value="{{ level.id }}">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+            <!-- Add Schedule Form -->
+            <div id="add-schedule-form" style="display: none;">
+                <!-- Container for Schedule Form -->
+                <div class="form-container">
+                    <h2>Add Schedule</h2>
+                    <form method="post" action="{{ url_for('views.admin_dashboard') }}">
+                        <div class="form-group">
+                            <input type="text" id="schedule_name" name="schedule_name" class="form-control" placeholder="Enter Schedule Name" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Schedule</button>
+                    </form>
+                </div>
+                <!-- Container for Schedules Table -->
+                <div class="table-container mt-4">
+                    <h3>Existing Schedules</h3>
+                    <table class="table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Schedule Name</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for schedule in schedules %}
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">{{ schedule.name }}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                    <form action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: inline;">
+                                        <input type="hidden" name="edit_schedule_id" value="{{ schedule.id }}">
+                                        <input type="text" name="edit_schedule_name" value="{{ schedule.name }}" placeholder="Edit Schedule Name" required>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fas fa-pencil-alt"></i>
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: inline;">
+                                        <input type="hidden" name="delete_schedule_id" value="{{ schedule.id }}">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <!-- Add Subject Form -->
+            <div id="add-subject-form" style="display: none;">
+                <div class="form-container">
+                    <h2>Add Subject</h2>
+                    <form method="post" action="{{ url_for('views.admin_dashboard') }}">
+                        <div class="form-group">
+                            <input type="text" id="subject_name" name="subject_name" class="form-control" placeholder="Enter Subject Name" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Subject</button>
+                    </form>
+                </div>
+
+                <!-- Container for Subjects Table -->
+                <div class="table-container mt-4">
+                    <h3>Existing Subjects</h3>
+                    <table class="table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Subject Name</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in subjects %}
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">{{ subject.name }}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                    <form action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: inline;">
+                                        <input type="hidden" name="edit_subject_id" value="{{ subject.id }}">
+                                        <input type="text" name="edit_subject_name" value="{{ subject.name }}" placeholder="Edit Subject Name" required>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fas fa-pencil-alt"></i>
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: inline;">
+                                        <input type="hidden" name="delete_subject_id" value="{{ subject.id }}">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            
+
+
+            <!-- Create or Edit Section Form -->
+            <div id="create-section-form" style="display: none;">
+                <div class="form-container">
+                    <h2>Create Section</h2>
+                <form method="post" action="{{ url_for('views.admin_dashboard') }}">
+                    <!-- Hidden field to store section_id for editing -->
+                    <input type="hidden" id="section_id" name="section_id">
+            
+                    <div class="form-group">
+                        <label for="level_id">Level</label>
+                        <select id="level_id" name="level_id" class="form-control" required>
+                            <!-- Populate with levels from database -->
+                            <<option value="" disabled selected>Select Level</option>
+                            {% for level in levels %}
+                                <option value="{{ level.id }}">{{ level.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+            
+                    <div class="form-group">
+                        <label for="schedule_id">Schedule</label>
+                        <select id="schedule_id" name="schedule_id" class="form-control" required>
+                            <!-- Populate with schedules from database -->
+                            <option value="" disabled selected>Select Schedule</option>
+                            {% for schedule in schedules %}
+                                <option value="{{ schedule.id }}">{{ schedule.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+            
+                    <div class="form-group">
+                        <label for="subject_id">Subject</label>
+                        <select id="subject_id" name="subject_id" class="form-control" required>
+                            <!-- Populate with subjects from database -->
+                            <option value="" disabled selected>Select Subject</option>
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}">{{ subject.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+            
+                    <div class="form-group">
+                        <label for="time">Time</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="time_from">From</label>
+                                <input type="time" id="time_from" name="time_from" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="time_to">To</label>
+                                <input type="time" id="time_to" name="time_to" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <div class="form-group">
+                        <label for="instructor">Instructor</label>
+                        <input type="text" id="instructor" name="instructor" class="form-control" placeholder="Enter instructor name" required>
+                    </div>
+            
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+
+
+       <!-- Container for Sections Table -->
+       <div id="sections-list-form" style="display: none; position: relative; padding-top: 20px;">
+
+      <!-- Edit Button (outside the sections table, upper right) -->
+        <button type="button" id="subjects-btn" class="btn btn-primary" data-toggle="modal" data-target="#editSectionsModal" style="float: right; margin-top: 20px;">
+            Edit Sections
+        </button>
+  
+        <div id="sections-table" style="display: none; margin-top: 70px;">
+
+            <!-- Modal Dialog for Editing Sections -->
+            <div class="modal fade" id="editSectionsModal" tabindex="-1" role="dialog" aria-labelledby="editSectionsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editSectionsModalLabel">Edit Sections</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+                            <!-- Editable Sections Table (inside the modal) -->
+                            <div class="table-container mt-4" style="overflow-x: auto;">
+                                <table class="table" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="border: 1px solid #ddd; padding: 8px;">Level</th>
+                                            <th style="border: 1px solid #ddd; padding: 8px;">Schedule</th>
+                                            <th style="border: 1px solid #ddd; padding: 8px;">Subject</th>
+                                            <th style="border: 1px solid #ddd; padding: 8px;">Time From</th>
+                                            <th style="border: 1px solid #ddd; padding: 8px;">Time To</th>
+                                            <th style="border: 1px solid #ddd; padding: 8px;">Instructor</th>
+                                            <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for section in sections %}
+                                        <tr>
+                                            <!-- Editable Section Form -->
+                                            <form id="edit-form-{{ section.id }}" action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: contents;">
+                                                <!-- Hidden Input for Section ID -->
+                                                <input type="hidden" name="edit_section_id" value="{{ section.id }}">
+                                
+                                                <!-- Editable Level -->
+                                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                                    <select name="edit_level_id">
+                                                        {% for level in levels %}
+                                                            <option value="{{ level.id }}" {% if level.id == section.level_id %}selected{% endif %}>{{ level.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+
+                                                <!-- Editable Schedule -->
+                                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                                    <select name="edit_schedule_id">
+                                                        {% for schedule in schedules %}
+                                                            <option value="{{ schedule.id }}" {% if schedule.id == section.schedule_id %}selected{% endif %}>{{ schedule.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+
+                                                <!-- Editable Subject -->
+                                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                                    <select name="edit_subject_id">
+                                                        {% for subject in subjects %}
+                                                            <option value="{{ subject.id }}" {% if subject.id == section.subject_id %}selected{% endif %}>{{ subject.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+
+                                                <!-- Editable Time From -->
+                                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                                    <input type="text" name="edit_time_from" value="{{ section.time_from }}" placeholder="Time From" required>
+                                                </td>
+
+                                                <!-- Editable Time To -->
+                                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                                    <input type="text" name="edit_time_to" value="{{ section.time_to }}" placeholder="Time To" required>
+                                                </td>
+
+                                                <!-- Editable Instructor -->
+                                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                                    <input type="text" name="edit_instructor" value="{{ section.instructor }}" placeholder="Instructor" required>
+                                                </td>
+
+                                                <!-- Actions -->
+                                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                                    <button type="submit" class="btn btn-warning">
+                                                        <i class="fas fa-pencil-alt"></i>
+                                                    </button>
+                                                </td>
+                                            </form>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Sections Table -->
+            <div class="table-container mt-4">
+                <h3>Existing Sections</h3>
+                <table class="table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Level</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Schedule</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Subject</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Time From</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Time To</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Instructor</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for section in sections %}
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">
+                                {% for level in levels %}
+                                    {% if level.id == section.level_id %}
+                                        {{ level.name }}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">
+                                {% for schedule in schedules %}
+                                    {% if schedule.id == section.schedule_id %}
+                                        {{ schedule.name }}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">
+                                {% for subject in subjects %}
+                                    {% if subject.id == section.subject_id %}
+                                        {{ subject.name }}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+
+                            <td style="border: 1px solid #ddd; padding: 8px;">{{ section.time_from }}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">{{ section.time_to }}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">{{ section.instructor }}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">
+                                <!-- Delete Form -->
+                                <form action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: inline;">
+                                    <input type="hidden" name="delete_section_id" value="{{ section.id }}">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+        
+<script>
+    document.getElementById('student-info-btn').addEventListener('click', function() {
+        document.getElementById('student-info-container').style.display = 'block';
+        document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('add-schedule-form').style.display = 'none';
+        document.getElementById('add-subject-form').style.display = 'none';
+        document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('sections-table').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'none';
+    });
+
+    document.getElementById('add-level-btn').addEventListener('click', function() {
+        document.getElementById('add-level-form').style.display = 'block';
+        document.getElementById('student-info-container').style.display = 'none';
+        document.getElementById('add-schedule-form').style.display = 'none';
+        document.getElementById('add-subject-form').style.display = 'none';
+        document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('sections-table').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'none';
+    });
+
+    document.getElementById('add-schedule-btn').addEventListener('click', function() {
+        document.getElementById('add-schedule-form').style.display = 'block';
+        document.getElementById('student-info-container').style.display = 'none';
+        document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('add-subject-form').style.display = 'none';
+        document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('sections-table').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'none';
+    });
+
+    document.getElementById('add-subject-btn').addEventListener('click', function() {
+        document.getElementById('add-subject-form').style.display = 'block';
+        document.getElementById('add-schedule-form').style.display = 'none';
+        document.getElementById('student-info-container').style.display = 'none';
+        document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('sections-table').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'none';
+    });
+
+    document.getElementById('create-section-btn').addEventListener('click', function() {
+        document.getElementById('create-section-form').style.display = 'block';
+        document.getElementById('add-subject-form').style.display = 'none';
+        document.getElementById('add-schedule-form').style.display = 'none';
+        document.getElementById('student-info-container').style.display = 'none';
+        document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('sections-table').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'none';
+    });
+
+    document.getElementById('subjects-btn').addEventListener('click', function() {
+        document.getElementById('sections-list-form').style.display = 'block';
+        document.getElementById('sections-table').style.display = 'block';
+        document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('add-subject-form').style.display = 'none';
+        document.getElementById('add-schedule-form').style.display = 'none';
+        document.getElementById('student-info-container').style.display = 'none';
+        document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'none';
+    });
+
+    document.getElementById('announcements-btn').addEventListener('click', function() {
+        document.getElementById('add-announcement-container').style.display = 'block';
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('sections-table').style.display = 'none';
+        document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('add-subject-form').style.display = 'none';
+        document.getElementById('add-schedule-form').style.display = 'none';
+        document.getElementById('student-info-container').style.display = 'none';
+        document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'block';
+    });
+    document.getElementById('show-announcement-btn').addEventListener('click', function() {
+        document.getElementById('announcements-container').style.display = 'block';
+    });
+    document.getElementById('close-announcements-btn').addEventListener('click', function() {
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'block';
+    });
+
+    function editAnnouncement(id, title, description) {
+        document.getElementById('edit_announcement_id').value = id;
+        document.getElementById('edit_title').value = title;
+        document.getElementById('edit_description').value = description;
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('edit-announcement-container').style.display = 'block';
+    }
+    
+    function hideEditForm() {
+        document.getElementById('edit-announcement-container').style.display = 'none';
+        document.getElementById('announcements-container').style.display = 'block';
+    }
+
+</script>
+
+
+   
+{% endblock %}

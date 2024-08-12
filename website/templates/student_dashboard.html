@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        margin: 0;
+        padding: 0
+        }
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        background-color: #78b1f3;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px;
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.356);
+        position: fixed;
+        top: 55px;
+        left: 0;
+        z-index: 99;
+    }
+    .sidebar button {
+        font-size: 1.1rem;
+        border: none;
+        outline: none;
+        padding: 10px;
+        margin-bottom: 10px;
+        background-color: #78b1f3;
+        border-radius: 7px;
+        color: rgb(255, 255, 255);
+        display: flex;
+        align-items: center;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+        font-family: 'Open Sans', sans-serif; 
+    }
+    .sidebar button i {
+        margin-left: 10px;
+        width: 20px;
+    }
+    .sidebar button:hover {
+        background-color: #3870b1;
+        color: white;
+    }
+    .content {
+        margin-left: 250px;
+        padding: 20px;
+        margin-top: 55px;
+    }
+    .logout-button {
+        width: 100%;
+        text-align: center;
+        margin-top: auto;
+        margin-bottom: 35px;
+    }
+    .student-info-container {
+        top: 55px; /* Align with the bottom of the navbar */
+        bottom: 0; /* Fill the entire remaining height of the viewport */
+        overflow-y: auto; /* Enable scrolling if content exceeds viewport */
+        z-index: 130; /* Ensure it's below the navbar and sidebar */
+        display: none; /* Initially hide */
+        left: 250px; /* Adjust based on sidebar width */
+        right: 0; /* Fill remaining space */
+        border: 1px solid #383636;
+        box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.658);
+    }
+    .student-info {
+        display: none;
+        background-color: #ffffff;
+        border: 1px solid #ccc;
+        border-radius: 7px;
+        padding: 25px 40px;
+        z-index: 100;
+        width: 820px;
+        left: calc(50% - 100px); /* Center horizontally */
+        top: 0;
+
+    }
+    .info-title {
+        font-weight: bold;
+    }
+    #announcements-container {
+        display: none;
+        background-color: #ffffff;
+        border: 1px solid #ccc;
+        border-radius: 7px;
+        padding: 25px 40px;
+        box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.658);
+        width: 820px;
+        left: 50%; /* Center horizontally */
+        top: 20%;
+        position: fixed;
+        transform: translateX(-65%); /* Adjust for centering */
+        z-index: 100;
+    }
+    .announcement-item {
+        background-color: #78b1f3;
+        border: 1px solid #757575;
+        border-radius: 7px;
+        box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.658);
+        padding: 10px 20px;
+        margin-left: 20px; /* Optional: Add left margin to move the entire item right */
+    }
+    #announcements-list ul {
+        list-style-type: none; /* Remove bullets */
+        padding: 0; /* Remove default padding */
+        margin: 0; /* Remove default margin */
+    }
+    .subjects-container {
+        width: 100%;
+        max-width: 1200px; /* Adjust as needed */
+        margin: 20px auto; /* Center the container with space above and below */
+        padding: 20px; /* Padding inside the container */
+        background-color: #ffffff; /* White background */
+        border: 1px solid #ddd; /* Light gray border */
+        border-radius: 8px; /* Rounded corners */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    }
+
+    .subjects-container h3 {
+        font-family: 'Open Sans', sans-serif;
+        color: #3a413c; /* Dark color for headers */
+        margin-bottom: 20px; /* Space below the header */
+    }
+
+    .subjects-container form label {
+        display: block; /* Block level labels for better spacing */
+        margin-bottom: 8px; /* Space below labels */
+    }
+
+    .subjects-container form select,
+    .subjects-container form button {
+        display: block;
+        margin-bottom: 12px; /* Space between form elements */
+        padding: 8px; /* Padding inside form elements */
+        font-size: 16px; /* Font size for form elements */
+    }
+
+    .subjects-container .subjects-list {
+        margin-top: 20px; /* Space above the list */
+    }
+
+    .subjects-container .subject-item {
+        margin-bottom: 15px; /* Space between list items */
+        padding: 10px; /* Padding inside each item */
+        border: 1px solid #ddd; /* Light gray border for items */
+        border-radius: 4px; /* Rounded corners for items */
+        background-color: #f9f9f9; /* Light background for items */
+    }
+
+    .subjects-container .btn-primary {
+        background-color: #007bff; /* Blue button color */
+        color: #fff; /* White text color */
+        border: none; /* Remove default button border */
+        border-radius: 4px; /* Rounded button corners */
+        padding: 8px 16px; /* Button padding */
+        cursor: pointer; /* Pointer cursor on hover */
+    }
+
+    .subjects-container .btn-primary:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+
+    .subjects-container .btn-secondary {
+        background-color: #6c757d; /* Gray button color */
+        color: #fff; /* White text color */
+        border: none; /* Remove default button border */
+        border-radius: 4px; /* Rounded button corners */
+        padding: 8px 16px; /* Button padding */
+        cursor: not-allowed; /* Indicate button is disabled */
+    }
+
+</style>
+
+<div class="sidebar">
+    <button id="announcements-btn" class="btn btn-primary">
+        Announcements <i class="fa fa-bell"></i>
+    </button>
+    <button id="student-info-btn" class="btn btn-primary">
+        Student Info <i class="fa fa-user"></i>
+    </button>   
+    <button id="subjects-btn" class="btn btn-primary btn-block">
+        Subjects <i class="fas fa-book-open"></i>
+    </button>
+    <button id="enrollment-status-btn" class="btn btn-primary">
+        Enrollment Status <i class="fas fa-check-circle"></i>
+    </button>
+    
+    <div class="logout-button">
+        {% if current_user.is_authenticated %}
+            <form action="{{ url_for('auth.logout') }}" method="post">
+                <button type="submit" class="btn btn-danger">Log Out
+                    <i class="fa fa-sign-out"></i>
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="content">
+    <h2 id="student-info-header" align='center'class="student-info-header" style="display: none; color: #3a413c; font-family: 'Open Sans', sans-serif; ">
+        Student Information
+    </h2>
+
+    <div id="student-info-container" class="student-info-container">
+        <div id="student-info-dialog" class="student-info">
+            <p id="student-name-info"><span class="info-title">Name:</span> {{ student.first_name }} {{ student.middle_name }} {{ student.last_name }} </p>
+            <p id="student-name-info"><span class="info-title">Suffix:</span> {{ student.suffix }}</p>
+            <p id="email-info"><span class="info-title">Email:</span> {{ student.email }}</p>
+            <p id="dob-info"><span class="info-title">Date of Birth:</span> {{ student.date_of_birth }}</p>
+            <p id="gender-info"><span class="info-title">Gender:</span> {{ student.gender }}</p>
+            <p id="nationality-info"><span class="info-title">Nationality:</span> {{ student.nationality }}</p>
+            <p id="address-info"><span class="info-title">Address:</span> {{ student.address }}</p>
+            <p id="guardian-info"><span class="info-title">Guardian's Full Name:</span> {{ student.parent_guardian_name }}</p>
+            <p id="relationship-info"><span class="info-title">Relationship to Student:</span> {{ student.relationship_to_student }}</p>
+            <p id="contact-info"><span class="info-title">Guardian's Contact Number:</span> {{ student.contact_number }}</p>
+            <p id="guardian-email-info"><span class="info-title">Guardian's Email:</span> {{ student.email_gp }}</p>
+            <p id="emergency-contact-info"><span class="info-title">Emergency Contact's Name:</span> {{ student.emergency_contact_name }}</p>
+            <p id="emergency-relationship-info"><span class="info-title">Emergency Relationship to Student:</span> {{ student.emergency_relationship }}</p>
+            <p id="emergency-contact-number-info"><span class="info-title">Emergency Contact's Number:</span> {{ student.emergency_contact_number }}</p>
+        </div>    
+    </div>
+
+    <!-- Add this section for displaying available sections -->
+    <div id="subjects-container" class="subjects-container" style="display: none;">
+        <h3>Available Sections</h3>
+        <form method="POST" action="{{ url_for('views.student_dashboard') }}">
+            <label for="level">Select Level:</label>
+            <select name="level" id="level" required>
+                <option value="">Choose a level</option>
+                {% for level in levels %}
+                    <option value="{{ level.id }}">{{ level.name }}</option>
+                {% endfor %}
+            </select>
+    
+            <label for="schedule">Select Schedule:</label>
+            <select name="schedule" id="schedule" required>
+                <option value="">Choose a schedule</option>
+                {% for schedule in schedules %}
+                    <option value="{{ schedule.id }}">{{ schedule.name }}</option>
+                {% endfor %}
+            </select>
+    
+            <button type="submit" class="btn btn-primary" name="action" value="filter">Filter</button>
+        </form>
+    
+        <div id="sections-list" class="subjects-list">
+            {% if subjects %}
+                <h3>Available Sections:</h3>
+                {% for section in subjects %}
+                    <div class="subject-item">
+                        <h4>{{ section.subject }}</h4>
+                        <p>Instructor: {{ section.instructor }}</p>
+                        <p>Time: {{ section.time_from }} to {{ section.time_to }}</p>
+                        {% set reserved = false %}
+                        {% for enrollment in current_user_enrollments %}
+                            {% if enrollment.section_id == section.id %}
+                                {% set reserved = true %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if reserved %}
+                            <button class="btn btn-secondary" disabled>Reserved</button>
+                        {% else %}
+                            <form method="POST" action="{{ url_for('views.student_dashboard') }}">
+                                <input type="hidden" name="action" value="reserve">
+                                <input type="hidden" name="section_id" value="{{ section.id }}">
+                                <button type="submit" class="btn btn-primary">Reserve</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No sections available</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add this section for displaying enrollment status -->
+    <div id="enrollment-status-container" class="content" style="display: none;">
+        <h2 class="enrollment-header" style="color: #3a413c; font-family: 'Open Sans', sans-serif;">
+            Enrollment Status
+        </h2>
+        <div id="enrollment-status-list">
+            {% if  reserved_subjects %}
+                <ul>
+                    {% for section in  reserved_subjects %}
+                        <li>
+                            {{ section.subject }} - {{ section.time_from }} to {{ section.time_to }} <br>
+                            Instructor: {{ section.instructor }}
+                            <form action="{{ url_for('views.student_dashboard') }}" method="post" style="display:inline;">
+                                <input type="hidden" name="section_id" value="{{ section.id }}">
+                                <button type="submit" name="action" value="unreserve">Unreserve</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No reserved sections.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Section for displaying announcements -->
+    <div id="announcements-container" class="content">
+        <h2 class="announcements-header" style="color: #3a413c; font-family: 'Open Sans', sans-serif; text-align: center;">
+            Announcements
+        </h2>
+        <div id="announcements-list">
+            {% if announcements1 %}
+                <ul>
+                    {% for announcement in announcements1 %}
+                        <li class="announcement-item">
+                            <div class="announcement-header">
+                                <h3>{{ announcement.title }}</h3>
+                            </div>
+                            <div class="announcement-body">
+                                <p>{{ announcement.description }}</p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No announcements available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('subjects-btn').addEventListener('click', function() {
+            document.getElementById('subjects-container').style.display = 'block';
+            document.getElementById('enrollment-status-container').style.display = 'none';
+            document.getElementById('student-info-header').style.display = 'none';
+            document.getElementById('student-info-container').style.display = 'none';
+            document.getElementById('announcements-container').style.display = 'none';
+        });
+    
+        document.getElementById('enrollment-status-btn').addEventListener('click', function() {
+            document.getElementById('subjects-container').style.display = 'none';
+            document.getElementById('enrollment-status-container').style.display = 'block';
+            document.getElementById('student-info-header').style.display = 'none';
+            document.getElementById('student-info-container').style.display = 'none';
+            document.getElementById('announcements-container').style.display = 'none';
+        });
+    
+        document.getElementById('student-info-btn').addEventListener('click', function() {
+            document.getElementById('student-info-header').style.display = 'block';
+            document.getElementById('student-info-container').style.display = 'block';
+            document.getElementById('student-info-dialog').style.display = 'block';
+            document.getElementById('subjects-container').style.display = 'none';
+            document.getElementById('enrollment-status-container').style.display = 'none';
+            document.getElementById('announcements-container').style.display = 'none';
+        });
+    
+        document.getElementById('announcements-btn').addEventListener('click', function() {
+            document.getElementById('announcements-container').style.display = 'block';
+            document.getElementById('subjects-container').style.display = 'none';
+            document.getElementById('enrollment-status-container').style.display = 'none';
+            document.getElementById('student-info-header').style.display = 'none';
+            document.getElementById('student-info-container').style.display = 'none';
+        });
+    </script>
+
+{% endblock %}
