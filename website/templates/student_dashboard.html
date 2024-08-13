@@ -110,6 +110,7 @@
         list-style-type: none; /* Remove bullets */
         padding: 0; /* Remove default padding */
         margin: 0; /* Remove default margin */
+        
     }
     .subjects-container {
         width: 100%;
@@ -173,6 +174,70 @@
         border-radius: 4px; /* Rounded button corners */
         padding: 8px 16px; /* Button padding */
         cursor: not-allowed; /* Indicate button is disabled */
+    }
+    .subjects-container {
+        width: 100%;
+        max-width: 1200px; /* Adjust as needed */
+        margin: 20px auto; /* Center the container with space above and below */
+        padding: 20px; /* Padding inside the container */
+        background-color: #ffffff; /* White background */
+        border: 1px solid #ddd; /* Light gray border */
+        border-radius: 8px; /* Rounded corners */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    }
+    
+    .subjects-container h3 {
+        font-family: 'Open Sans', sans-serif;
+        color: #3a413c; /* Dark color for headers */
+        margin-bottom: 20px; /* Space below the header */
+    }
+    
+    .subjects-container form label {
+        display: block; /* Block level labels for better spacing */
+        margin-bottom: 8px; /* Space below labels */
+    }
+    
+    .subjects-container form select,
+    .subjects-container form button {
+        display: block;
+        margin-bottom: 12px; /* Space between form elements */
+        padding: 8px; /* Padding inside form elements */
+        font-size: 16px; /* Font size for form elements */
+    }
+    
+    .subjects-container .subjects-list {
+        margin-top: 20px; /* Space above the list */
+    }
+    
+    .subjects-container .subject-item {
+        margin-bottom: 15px; /* Space between list items */
+        padding: 10px; /* Padding inside each item */
+        border: 1px solid #ddd; /* Light gray border for items */
+        border-radius: 4px; /* Rounded corners for items */
+        background-color: #f9f9f9; /* Light background for items */
+    }
+    
+    .subjects-container .btn-primary {
+        background-color: #007bff; /* Blue button color */
+        color: #fff; /* White text color */
+        border: none; /* Remove default button border */
+        border-radius: 4px; /* Rounded button corners */
+        padding: 8px 16px; /* Button padding */
+        cursor: pointer; /* Pointer cursor on hover */
+    }
+    
+    .subjects-container .btn-primary:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+    
+    .subjects-container .btn-secondary {
+        background-color: #0056b3; /* Gray button color */
+        color: #fff; /* White text color */
+        border: none; /* Remove default button border */
+        border-radius: 4px; /* Rounded button corners */
+        padding: 8px 16px; /* Button padding */
+        cursor: pointer; /* Pointer cursor on hover */
+
     }
 
 </style>
@@ -254,7 +319,23 @@
                 <h3>Available Sections:</h3>
                 {% for section in subjects %}
                     <div class="subject-item">
-                        <h4>{{ section.subject }}</h4>
+                        <h4>
+                            <strong>{{ subjects_dict[section.subject_id] }}</strong>
+                        </h4>
+                        <p>Level: 
+                            {% for level in levels %}
+                                {% if level.id == section.level_id %}
+                                    {{ level.name }}
+                                {% endif %}
+                            {% endfor %}
+                        </p>
+                        <p>Schedule: 
+                            {% for schedule in schedules %}
+                                {% if schedule.id == section.schedule_id %}
+                                    {{ schedule.name }}
+                                {% endif %}
+                            {% endfor %}
+                        </p>
                         <p>Instructor: {{ section.instructor }}</p>
                         <p>Time: {{ section.time_from }} to {{ section.time_to }}</p>
                         {% set reserved = false %}
@@ -281,20 +362,35 @@
     </div>
 
     <!-- Add this section for displaying enrollment status -->
-    <div id="enrollment-status-container" class="content" style="display: none;">
-        <h2 class="enrollment-header" style="color: #3a413c; font-family: 'Open Sans', sans-serif;">
-            Enrollment Status
-        </h2>
+    <div id="enrollment-status-container" class="subjects-container" style="display: none;">
+        <h3>Enrollment Status</h3>
         <div id="enrollment-status-list">
-            {% if  reserved_subjects %}
+            {% if reserved_subjects %}
                 <ul>
-                    {% for section in  reserved_subjects %}
-                        <li>
-                            {{ section.subject }} - {{ section.time_from }} to {{ section.time_to }} <br>
-                            Instructor: {{ section.instructor }}
+                    {% for section in reserved_subjects %}
+                        <li class="subject-item">
+                            <h4>
+                                <strong>{{ subjects_dict[section.subject_id] }}</strong>
+                            </h4>
+                            <p>Level: 
+                                {% for level in levels %}
+                                    {% if level.id == section.level_id %}
+                                        {{ level.name }}
+                                    {% endif %}
+                                {% endfor %}
+                            </p>
+                            <p>Schedule: 
+                                {% for schedule in schedules %}
+                                    {% if schedule.id == section.schedule_id %}
+                                        {{ schedule.name }}
+                                    {% endif %}
+                                {% endfor %}
+                            </p>
+                            <p>Time: {{ section.time_from }} to {{ section.time_to }}</p>
+                            <p>Instructor: {{ section.instructor }}</p>
                             <form action="{{ url_for('views.student_dashboard') }}" method="post" style="display:inline;">
                                 <input type="hidden" name="section_id" value="{{ section.id }}">
-                                <button type="submit" name="action" value="unreserve">Unreserve</button>
+                                <button type="submit" name="action" value="unreserve" class="btn btn-secondary">Unreserve</button>
                             </form>
                         </li>
                     {% endfor %}
@@ -304,6 +400,7 @@
             {% endif %}
         </div>
     </div>
+    
 
     <!-- Section for displaying announcements -->
     <div id="announcements-container" class="content">

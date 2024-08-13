@@ -13,6 +13,7 @@ def student_dashboard():
    announcements1 = AnnouncementAdmin.query.all()
    levels = Level.query.all()
    schedules = Schedule.query.all()
+   subjects_dict = {subject.id: subject.name for subject in Subject.query.all()}
    subjects = []
 
 
@@ -55,6 +56,7 @@ def student_dashboard():
                           levels=levels, 
                           schedules=schedules, 
                           subjects=subjects,  
+                          subjects_dict=subjects_dict,
                           reserved_subjects=reserved_subjects, 
                           title='Student Dashboard')
 
@@ -196,20 +198,30 @@ def admin_dashboard():
             return redirect(url_for('views.admin_dashboard'))  # Redirect after successful addition
             
 
-        elif 'edit_announcement_id' in request.form:
-            edit_announcement_id = request.form.get('edit_announcement_id')
-            new_title = request.form.get('edit_title')
-            new_description = request.form.get('edit_description')
-            if edit_announcement_id and new_title and new_description:
-                announcement = AnnouncementAdmin.query.get(edit_announcement_id)
-                if announcement:
-                    announcement.title = new_title
-                    announcement.description = new_description
-                    db.session.commit()
-                    flash('Announcement updated successfully!', category='success')
-                else:
-                    flash('Announcement not found!', category='error')
-            return redirect(url_for('views.admin_dashboard'))  # Redirect after successful addition
+        elif 'edit_section_id' in request.form:
+            section_id = request.form.get('edit_section_id')
+            new_level_id = request.form.get('edit_level_id')
+            new_schedule_id = request.form.get('edit_schedule_id')
+            new_subject_id = request.form.get('edit_subject_id')
+            new_time_from = request.form.get('edit_time_from')
+            new_time_to = request.form.get('edit_time_to')
+            new_instructor = request.form.get('edit_instructor')
+
+            section = Section.query.get(section_id)
+
+            if section:
+                section.level_id = new_level_id or section.level_id
+                section.schedule_id = new_schedule_id or section.schedule_id
+                section.subject_id = new_subject_id or section.subject_id
+                section.time_from = new_time_from or section.time_from
+                section.time_to = new_time_to or section.time_to
+                section.instructor = new_instructor or section.instructor
+                db.session.commit()
+                flash('Section updated successfully!', category='success')
+            else:
+                flash('Section not found!', category='error')
+
+            return redirect(url_for('views.admin_dashboard'))
 
         elif 'announcement_id' in request.form:
             # Deleting announcements

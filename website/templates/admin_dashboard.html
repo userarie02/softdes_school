@@ -658,271 +658,250 @@
        <!-- Container for Sections Table -->
        <div id="sections-list-form" style="display: none; position: relative; padding-top: 20px;">
 
-      <!-- Edit Button (outside the sections table, upper right) -->
-        <button type="button" id="subjects-btn" class="btn btn-primary" data-toggle="modal" data-target="#editSectionsModal" style="float: right; margin-top: 20px;">
-            Edit Sections
-        </button>
-  
-        <div id="sections-table" style="display: none; margin-top: 70px;">
-
-            <!-- Modal Dialog for Editing Sections -->
-            <div class="modal fade" id="editSectionsModal" tabindex="-1" role="dialog" aria-labelledby="editSectionsModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="editSectionsModalLabel">Edit Sections</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
+        <!-- Existing Sections Table -->
+        <div id = "existing-sections" class="table-container mt-4">
+            <h3>Existing Sections</h3>
+            <table class="table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Level</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Schedule</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Subject</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Time From</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Time To</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Instructor</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for section in sections %}
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">
+                            {% for level in levels %}
+                                {% if level.id == section.level_id %}
+                                    {{ level.name }}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">
+                            {% for schedule in schedules %}
+                                {% if schedule.id == section.schedule_id %}
+                                    {{ schedule.name }}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">
+                            {% for subject in subjects %}
+                                {% if subject.id == section.subject_id %}
+                                    {{ subject.name }}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+    
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ section.time_from }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ section.time_to }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ section.instructor }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">
+                            <!-- Edit Button (opens modal) -->
+                            <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editSectionsModal-{{ section.id }}">
+                                <i class="fas fa-pencil-alt"></i>
                             </button>
-                        </div>
-                        <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
-                            <!-- Editable Sections Table (inside the modal) -->
-                            <div class="table-container mt-4" style="overflow-x: auto;">
-                                <table class="table" style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th style="border: 1px solid #ddd; padding: 8px;">Level</th>
-                                            <th style="border: 1px solid #ddd; padding: 8px;">Schedule</th>
-                                            <th style="border: 1px solid #ddd; padding: 8px;">Subject</th>
-                                            <th style="border: 1px solid #ddd; padding: 8px;">Time From</th>
-                                            <th style="border: 1px solid #ddd; padding: 8px;">Time To</th>
-                                            <th style="border: 1px solid #ddd; padding: 8px;">Instructor</th>
-                                            <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for section in sections %}
-                                        <tr>
-                                            <!-- Editable Section Form -->
-                                            <form id="edit-form-{{ section.id }}" action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: contents;">
-                                                <!-- Hidden Input for Section ID -->
+    
+                            <!-- Delete Form -->
+                            <form action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: inline;">
+                                <input type="hidden" name="delete_section_id" value="{{ section.id }}">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+    
+                            <!-- Edit Modal for Each Section -->
+                            <div class="modal fade" id="editSectionsModal-{{ section.id }}" tabindex="-1" role="dialog" aria-labelledby="editSectionsModalLabel-{{ section.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editSectionsModalLabel-{{ section.id }}">Edit Section</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+                                            <!-- Editable Section Form (inside the modal) -->
+                                            <form action="{{ url_for('views.admin_dashboard') }}" method="post">
                                                 <input type="hidden" name="edit_section_id" value="{{ section.id }}">
-                                
+    
                                                 <!-- Editable Level -->
-                                                <td style="border: 1px solid #ddd; padding: 8px;">
-                                                    <select name="edit_level_id">
+                                                <div class="form-group">
+                                                    <label for="edit_level_id-{{ section.id }}">Level</label>
+                                                    <select id="edit_level_id-{{ section.id }}" name="edit_level_id" class="form-control">
                                                         {% for level in levels %}
                                                             <option value="{{ level.id }}" {% if level.id == section.level_id %}selected{% endif %}>{{ level.name }}</option>
                                                         {% endfor %}
                                                     </select>
-                                                </td>
-
+                                                </div>
+    
                                                 <!-- Editable Schedule -->
-                                                <td style="border: 1px solid #ddd; padding: 8px;">
-                                                    <select name="edit_schedule_id">
+                                                <div class="form-group">
+                                                    <label for="edit_schedule_id-{{ section.id }}">Schedule</label>
+                                                    <select id="edit_schedule_id-{{ section.id }}" name="edit_schedule_id" class="form-control">
                                                         {% for schedule in schedules %}
                                                             <option value="{{ schedule.id }}" {% if schedule.id == section.schedule_id %}selected{% endif %}>{{ schedule.name }}</option>
                                                         {% endfor %}
                                                     </select>
-                                                </td>
-
+                                                </div>
+    
                                                 <!-- Editable Subject -->
-                                                <td style="border: 1px solid #ddd; padding: 8px;">
-                                                    <select name="edit_subject_id">
+                                                <div class="form-group">
+                                                    <label for="edit_subject_id-{{ section.id }}">Subject</label>
+                                                    <select id="edit_subject_id-{{ section.id }}" name="edit_subject_id" class="form-control">
                                                         {% for subject in subjects %}
                                                             <option value="{{ subject.id }}" {% if subject.id == section.subject_id %}selected{% endif %}>{{ subject.name }}</option>
                                                         {% endfor %}
                                                     </select>
-                                                </td>
-
+                                                </div>
+    
                                                 <!-- Editable Time From -->
-                                                <td style="border: 1px solid #ddd; padding: 8px;">
-                                                    <input type="text" name="edit_time_from" value="{{ section.time_from }}" placeholder="Time From" required>
-                                                </td>
-
+                                                <div class="form-group">
+                                                    <label for="edit_time_from-{{ section.id }}">Time From</label>
+                                                    <input type="text" id="edit_time_from-{{ section.id }}" name="edit_time_from" value="{{ section.time_from }}" class="form-control" placeholder="Time From" required>
+                                                </div>
+    
                                                 <!-- Editable Time To -->
-                                                <td style="border: 1px solid #ddd; padding: 8px;">
-                                                    <input type="text" name="edit_time_to" value="{{ section.time_to }}" placeholder="Time To" required>
-                                                </td>
-
+                                                <div class="form-group">
+                                                    <label for="edit_time_to-{{ section.id }}">Time To</label>
+                                                    <input type="text" id="edit_time_to-{{ section.id }}" name="edit_time_to" value="{{ section.time_to }}" class="form-control" placeholder="Time To" required>
+                                                </div>
+    
                                                 <!-- Editable Instructor -->
-                                                <td style="border: 1px solid #ddd; padding: 8px;">
-                                                    <input type="text" name="edit_instructor" value="{{ section.instructor }}" placeholder="Instructor" required>
-                                                </td>
-
-                                                <!-- Actions -->
-                                                <td style="border: 1px solid #ddd; padding: 8px;">
-                                                    <button type="submit" class="btn btn-warning">
-                                                        <i class="fas fa-pencil-alt"></i>
-                                                    </button>
-                                                </td>
+                                                <div class="form-group">
+                                                    <label for="edit_instructor-{{ section.id }}">Instructor</label>
+                                                    <input type="text" id="edit_instructor-{{ section.id }}" name="edit_instructor" value="{{ section.instructor }}" class="form-control" placeholder="Instructor" required>
+                                                </div>
+    
+                                                <div class="form-group">
+                                                    <button type="submit" class="btn btn-warning">Save changes</button>
+                                                </div>
                                             </form>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Existing Sections Table -->
-            <div class="table-container mt-4">
-                <h3>Existing Sections</h3>
-                <table class="table" style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th style="border: 1px solid #ddd; padding: 8px;">Level</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">Schedule</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">Subject</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">Time From</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">Time To</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">Instructor</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for section in sections %}
-                        <tr>
-                            <td style="border: 1px solid #ddd; padding: 8px;">
-                                {% for level in levels %}
-                                    {% if level.id == section.level_id %}
-                                        {{ level.name }}
-                                    {% endif %}
-                                {% endfor %}
-                            </td>
-                            <td style="border: 1px solid #ddd; padding: 8px;">
-                                {% for schedule in schedules %}
-                                    {% if schedule.id == section.schedule_id %}
-                                        {{ schedule.name }}
-                                    {% endif %}
-                                {% endfor %}
-                            </td>
-                            <td style="border: 1px solid #ddd; padding: 8px;">
-                                {% for subject in subjects %}
-                                    {% if subject.id == section.subject_id %}
-                                        {{ subject.name }}
-                                    {% endif %}
-                                {% endfor %}
-                            </td>
-
-                            <td style="border: 1px solid #ddd; padding: 8px;">{{ section.time_from }}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px;">{{ section.time_to }}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px;">{{ section.instructor }}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px;">
-                                <!-- Delete Form -->
-                                <form action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: inline;">
-                                    <input type="hidden" name="delete_section_id" value="{{ section.id }}">
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                                        </div>
+    
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>      
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+    
     </div>
 </div>
 
         
 <script>
     document.getElementById('student-info-btn').addEventListener('click', function() {
-        document.getElementById('student-info-container').style.display = 'block';
+        document.getElementById('student-info-container').style.display = 'block'
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'none';
         document.getElementById('add-level-form').style.display = 'none';
         document.getElementById('add-schedule-form').style.display = 'none';
         document.getElementById('add-subject-form').style.display = 'none';
         document.getElementById('create-section-form').style.display = 'none';
         document.getElementById('sections-table').style.display = 'none';
         document.getElementById('sections-list-form').style.display = 'none';
-        document.getElementById('add-announcement-container').style.display = 'none';
-        document.getElementById('add-announcement-container').style.display = 'none';
-        document.getElementById('announcements-container').style.display = 'none';
-        document.getElementById('announcement-buttons').style.display = 'none';
+        document.getElementById('existing-sections').style.display = 'none';
+
     });
 
     document.getElementById('add-level-btn').addEventListener('click', function() {
         document.getElementById('add-level-form').style.display = 'block';
         document.getElementById('student-info-container').style.display = 'none';
-        document.getElementById('add-schedule-form').style.display = 'none';
-        document.getElementById('add-subject-form').style.display = 'none';
-        document.getElementById('create-section-form').style.display = 'none';
-        document.getElementById('sections-table').style.display = 'none';
-        document.getElementById('sections-list-form').style.display = 'none';
-        document.getElementById('add-announcement-container').style.display = 'none';
         document.getElementById('add-announcement-container').style.display = 'none';
         document.getElementById('announcements-container').style.display = 'none';
         document.getElementById('announcement-buttons').style.display = 'none';
+        document.getElementById('add-schedule-form').style.display = 'none';
+        document.getElementById('add-subject-form').style.display = 'none';
+        document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('existing-sections').style.display = 'none';
     });
 
     document.getElementById('add-schedule-btn').addEventListener('click', function() {
         document.getElementById('add-schedule-form').style.display = 'block';
         document.getElementById('student-info-container').style.display = 'none';
-        document.getElementById('add-level-form').style.display = 'none';
-        document.getElementById('add-subject-form').style.display = 'none';
-        document.getElementById('create-section-form').style.display = 'none';
-        document.getElementById('sections-table').style.display = 'none';
-        document.getElementById('sections-list-form').style.display = 'none';
-        document.getElementById('add-announcement-container').style.display = 'none';
         document.getElementById('add-announcement-container').style.display = 'none';
         document.getElementById('announcements-container').style.display = 'none';
         document.getElementById('announcement-buttons').style.display = 'none';
+        document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('add-subject-form').style.display = 'none';
+        document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('existing-sections').style.display = 'none';
+
     });
 
     document.getElementById('add-subject-btn').addEventListener('click', function() {
         document.getElementById('add-subject-form').style.display = 'block';
         document.getElementById('add-schedule-form').style.display = 'none';
         document.getElementById('student-info-container').style.display = 'none';
-        document.getElementById('add-level-form').style.display = 'none';
-        document.getElementById('create-section-form').style.display = 'none';
-        document.getElementById('sections-table').style.display = 'none';
-        document.getElementById('sections-list-form').style.display = 'none';
-        document.getElementById('add-announcement-container').style.display = 'none';
         document.getElementById('add-announcement-container').style.display = 'none';
         document.getElementById('announcements-container').style.display = 'none';
         document.getElementById('announcement-buttons').style.display = 'none';
+        document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('existing-sections').style.display = 'none';
     });
 
     document.getElementById('create-section-btn').addEventListener('click', function() {
         document.getElementById('create-section-form').style.display = 'block';
-        document.getElementById('add-subject-form').style.display = 'none';
-        document.getElementById('add-schedule-form').style.display = 'none';
         document.getElementById('student-info-container').style.display = 'none';
-        document.getElementById('add-level-form').style.display = 'none';
-        document.getElementById('sections-table').style.display = 'none';
-        document.getElementById('sections-list-form').style.display = 'none';
-        document.getElementById('add-announcement-container').style.display = 'none';
         document.getElementById('add-announcement-container').style.display = 'none';
         document.getElementById('announcements-container').style.display = 'none';
         document.getElementById('announcement-buttons').style.display = 'none';
+        document.getElementById('add-subject-form').style.display = 'none';
+        document.getElementById('add-schedule-form').style.display = 'none';
+        document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('existing-sections').style.display = 'none';
+
     });
 
     document.getElementById('subjects-btn').addEventListener('click', function() {
         document.getElementById('sections-list-form').style.display = 'block';
-        document.getElementById('sections-table').style.display = 'block';
+        document.getElementById('existing-sections').style.display = 'block';
         document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('student-info-container').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'none';
         document.getElementById('add-subject-form').style.display = 'none';
         document.getElementById('add-schedule-form').style.display = 'none';
         document.getElementById('student-info-container').style.display = 'none';
         document.getElementById('add-level-form').style.display = 'none';
-        document.getElementById('add-announcement-container').style.display = 'none';
-        document.getElementById('add-announcement-container').style.display = 'none';
-        document.getElementById('announcements-container').style.display = 'none';
-        document.getElementById('announcement-buttons').style.display = 'none';
     });
 
     document.getElementById('announcements-btn').addEventListener('click', function() {
         document.getElementById('add-announcement-container').style.display = 'block';
+        document.getElementById('announcement-buttons').style.display = 'block';
         document.getElementById('announcements-container').style.display = 'none';
-        document.getElementById('sections-list-form').style.display = 'none';
-        document.getElementById('sections-table').style.display = 'none';
+        document.getElementById('student-info-container').style.display = 'none';
         document.getElementById('create-section-form').style.display = 'none';
         document.getElementById('add-subject-form').style.display = 'none';
         document.getElementById('add-schedule-form').style.display = 'none';
-        document.getElementById('student-info-container').style.display = 'none';
         document.getElementById('add-level-form').style.display = 'none';
-        document.getElementById('announcement-buttons').style.display = 'block';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('existing-sections').style.display = 'none';
     });
+
     document.getElementById('show-announcement-btn').addEventListener('click', function() {
         document.getElementById('announcements-container').style.display = 'block';
     });
+
     document.getElementById('close-announcements-btn').addEventListener('click', function() {
         document.getElementById('announcements-container').style.display = 'none';
         document.getElementById('announcement-buttons').style.display = 'block';
@@ -940,8 +919,8 @@
         document.getElementById('edit-announcement-container').style.display = 'none';
         document.getElementById('announcements-container').style.display = 'block';
     }
-
 </script>
+
 
 
    
