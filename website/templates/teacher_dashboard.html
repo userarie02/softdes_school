@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+   body {
+       margin: 0;
+       padding: 0; 
+   }
+   .sidebar {
+       width: 250px;
+       height: 100vh;
+       background-color: #78b1f3;
+       display: flex;
+       flex-direction: column;
+       align-items: flex-start;
+       padding: 20px;
+       box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.356);
+       position: fixed;
+       top: 55px;
+       left: 0;
+       z-index: 99;
+   }
+   .sidebar button {
+       font-size: 1.1rem;
+       border: none;
+       outline: none;
+       padding: 10px;
+       margin-bottom: 10px;
+       background-color: #78b1f3;
+       border-radius: 7px;
+       color: rgb(255, 255, 255);
+       display: flex;
+       align-items: center;
+       width: 100%;
+       text-align: left;
+       cursor: pointer;
+       transition: background-color 0.3s, color 0.3s;
+       font-family: 'Open Sans', sans-serif; 
+   }
+   .sidebar button i {
+       margin-right: 10px;
+       font-size: 1.2rem;
+   }
+   .sidebar button:hover {
+       background-color: #3870b1;
+       color: white;
+   }
+   .content-section {
+       margin-left: 250px;
+       padding: 20px;
+       margin-top: 55px;
+       z-index: 1;
+   }
+   .content-section .btn-primary:hover {
+       background-color: #0056b3;
+   }
+   .content-section .btn-danger {
+       background-color: #dc3545;
+       color: #fff;
+       border: none;
+       border-radius: 4px;
+       padding: 8px 16px;
+       cursor: pointer;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+   }
+   .content-section .btn-danger i {
+       margin-right: 5px;
+   }
+   .content-section .btn-danger:hover {
+       background-color: #c82333;
+   }
+   .list-group-item {
+       border-radius: 7px;
+       margin-bottom: 10px;
+   }
+
+   /* Styles for Personal Information Card */
+   .personal-info-card {
+       background: #fff;
+       border-radius: 8px;
+       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+       padding: 20px;
+       margin-bottom: 20px;
+   }
+   .personal-info-card h3 {
+       margin-bottom: 20px;
+       font-size: 1.5rem;
+       color: #333;
+   }
+   .personal-info-card .info-item {
+       margin-bottom: 15px;
+       display: flex;
+       justify-content: space-between;
+   }
+   .personal-info-card .info-item strong {
+       color: #555;
+   }
+   .personal-info-card .info-item p {
+       margin: 0;
+       color: #666;
+   }
+
+   /* Styles for Announcements Section */
+   .announcement-card {
+       background-color: #f9f9f9; /* Optional: Background color */
+       border-radius: 8px;
+       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.247);
+       padding: 20px;
+       margin-bottom: 20px;
+       max-width: 200%; /* Adjust the percentage as needed */
+       position: relative;
+       left: 20%; /* Adjust this value to move the container further to the right */
+       transform: translateX(0); /* Optional: Adjust the translation if needed */
+   }
+   .announcement-card h3 {
+       margin-bottom: 20px;
+       font-size: 1.5rem;
+       color: #333;
+   }
+   .announcement-item {
+       margin-bottom: 15px;
+       padding: 15px;
+       border: 1px solid #e0e0e0;
+       border-radius: 8px;
+       border-bottom: 1px solid #ddd; /* Border between announcement items */
+       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.247);
+   }
+   .announcement-item h5 {
+       margin: 0;
+       font-size: 1.2rem;
+       color: #333;
+   }
+   .announcement-item p {
+       margin: 5px 0;
+       color: #666;
+   }
+   .announcement-item small {
+       display: block;
+       margin-top: 10px;
+       color: #999;
+   }
+   .announcement-item .btn-group {
+       margin-top: 10px;
+   }
+   .announcement-item .btn-group .btn {
+       margin-right: 5px;
+   }
+   .announcement-item .btn-group .btn:last-child {
+       margin-right: 0;
+   }
+   .announcement-form {
+       background: #fff;
+       border-radius: 8px;
+       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+       padding: 20px;
+   }
+   .announcement-form label {
+       margin-bottom: 5px;
+       font-weight: bold;
+       color: #333;
+   }
+   .announcement-form .form-group {
+       margin-bottom: 15px;
+   }
+   .announcement-form .form-control {
+       border-radius: 4px;
+       border: 1px solid #ccc;
+   }
+
+   .section-card {
+       background: #fff;
+       border-radius: 8px;
+       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+       padding: 15px;
+       margin-bottom: 10px;
+   }
+
+   .section-card p {
+       margin: 5px 0;
+       color: #333;
+   }
+
+   .section-card strong {
+       color: #555;
+   }
+
+   .section-card:hover {
+       background-color: #f1f1f1;
+       cursor: pointer;
+   }
+   .container {
+    padding-top: 20px; /* Reduce padding at the top */
+    width: 90%; /* Widen the container to 90% of the viewport width */
+    max-width: 1200px; /* Optional: Set a maximum width */
+    margin: 0 auto; /* Center the container horizontally */
+    box-sizing: border-box; /* Include padding and border in the element's total width */
+    }
+   .filter-container {
+    background: #f8f9fa; /* Light background color for the filter area */
+    border: 1px solid #ddd; /* Light border to separate the filter area */
+    border-radius: 8px; /* Rounded corners */
+    padding: 15px; /* Space inside the container */
+    margin-bottom: 10px; /* Reduced space below the filter container */
+    margin-top: -10px; /* Move the filter container upwards */
+
+    width: 100%; /* Make the filter container take the full width of the parent */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+   ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+</style>
+
+<div class="sidebar">
+   <button class="list-group-item list-group-item-action active" id="personal-info-tab">
+       <i class="fas fa-user"></i> Personal Info
+   </button>
+   <button class="list-group-item list-group-item-action" id="announcement-tab">
+       <i class="fas fa-bullhorn"></i> Announcements
+   </button>
+   <button class="list-group-item list-group-item-action" id="section-tab">
+       <i class="fas fa-th"></i> Sections
+   </button>
+   <!-- Logout Button -->
+   <form method="POST" action="{{ url_for('auth.logout') }}" class="mt-3">
+       <button type="submit" class="btn btn-danger btn-logout">
+           <i class="fas fa-sign-out-alt"></i> Logout
+       </button>
+   </form>
+</div>
+
+<div class="content-section">
+   <div class="row">
+       <div class="col-md-9">
+           <!-- Personal Info Section -->
+           <div id="personal-info" class="personal-info-card" style="display: none;">
+               <h3>Personal Information</h3>
+               <div class="info-item">
+                   <strong>Email:</strong>
+                   <p>{{ student.email }}</p>
+               </div>
+               <div class="info-item">
+                   <strong>Name:</strong>
+                   <p>{{ student.first_name }} {{ student.middle_name }} {{ student.last_name }} {{ student.suffix }}</p>
+               </div>
+               <div class="info-item">
+                   <strong>Date of Birth:</strong>
+                   <p>{{ student.date_of_birth }}</p>
+               </div>
+               <div class="info-item">
+                   <strong>Gender:</strong>
+                   <p>{{ student.gender }}</p>
+               </div>
+               <div class="info-item">
+                   <strong>Nationality:</strong>
+                   <p>{{ student.nationality }}</p>
+               </div>
+               <div class="info-item">
+                   <strong>Address:</strong>
+                   <p>{{ student.address }}</p>
+               </div>
+
+               <div class="info-item">
+                   <strong>Contact Number:</strong>
+                   <p>{{ student.contact_number }}</p>
+               </div>
+           </div>
+
+           <!-- Announcements Section -->
+           <div id="announcement" class="announcement-card" style="display: none; ">
+               <h3>Admin Announcements</h3>
+               <ul class="list-group mb-4">
+                   {% for announcement in announcements1 %}
+                   <li class="announcement-item">
+                       <h5>{{ announcement.title }}</h5>
+                       <p>{{ announcement.description }}</p>
+                   </li>
+                   {% endfor %}
+               </ul>
+
+               <h3>My Announcements</h3>
+               <ul class="list-group mb-4">
+                   {% for announcement in announcements %}
+                   <li class="announcement-item">
+                       <h5>{{ announcement.title }}</h5>
+                       <p>{{ announcement.description }}</p>
+                       <div class="btn-group mt-2">
+                           <button class="btn btn-sm btn-primary" onclick="editAnnouncement('{{ announcement.id }}', '{{ announcement.title }}', '{{ announcement.description }}')">
+                               <i class="fas fa-edit"></i> Edit
+                           </button>
+                           <form method="POST" class="d-inline">
+                               <input type="hidden" name="announcement_id1" value="{{ announcement.id }}">
+                               <button type="submit" class="btn btn-sm btn-danger">
+                                   <i class="fas fa-trash-alt"></i> Delete
+                               </button>
+                           </form>
+                       </div>
+                   </li>
+                   {% endfor %}
+               </ul>
+
+               <!-- Add Announcement Button -->
+               <button class="btn btn-primary" data-toggle="modal" data-target="#addAnnouncementModal">
+                   <i class="fas fa-plus"></i> Add Announcement
+               </button>
+           </div>
+
+           <!-- Sections Section -->
+           <div class="container">
+                <!-- Sections Section -->
+                <div id="section" class="content-section" style="display: none;">
+                    <h3>Sections</h3>
+            
+                    <!-- Filter Container -->
+                    <div class="filter-container mb-4">
+                        <div class="form-group">
+                            <label for="filter-level">Filter by Level</label>
+                            <select id="filter-level" class="form-control">
+                                <option value="">Select Level</option>
+                                {% for level in levels %}
+                                <option value="{{ level.id }}">{{ level.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filter-schedule">Filter by Schedule</label>
+                            <select id="filter-schedule" class="form-control">
+                                <option value="">Select Schedule</option>
+                                {% for schedule in schedules %}
+                                <option value="{{ schedule.id }}">{{ schedule.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+            
+                    <!-- Sections List -->
+                    <ul id="sections-list" class="list-group">
+                        {% for section in sections %}
+                        <li class="list-group-item section-item" data-level-id="{{ section.level_id }}" data-schedule-id="{{ section.schedule_id }}">
+                            <div class="section-card">
+                                <p><strong>Subject:</strong> {{ section.subject.name }}</p>
+                                <p><strong>Time:</strong> {{ section.time_from }} - {{ section.time_to }}</p>
+                                <p><strong>Instructor:</strong> {{ section.instructor }}</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+        </div>
+
+<!-- Add Announcement Modal -->
+<div class="modal fade" id="addAnnouncementModal" tabindex="-1" role="dialog" aria-labelledby="addAnnouncementModalLabel" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+       <div class="modal-content">
+           <form method="POST">
+               <div class="modal-header">
+                   <h5 class="modal-title" id="addAnnouncementModalLabel">Add Announcement</h5>
+                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                       <span aria-hidden="true">&times;</span>
+                   </button>
+               </div>
+               <div class="modal-body">
+                   <div class="form-group">
+                       <label for="title">Title</label>
+                       <input type="text" name="title" class="form-control" id="title" required>
+                   </div>
+                   <div class="form-group">
+                       <label for="description">Description</label>
+                       <textarea name="description" class="form-control" id="description" rows="3" required></textarea>
+                   </div>
+               </div>
+               <div class="modal-footer">
+                   <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                       <i class="fas fa-times"></i> Close
+                   </button>
+                   <button type="submit" class="btn btn-primary">
+                       <i class="fas fa-plus"></i> Add Announcement
+                   </button>
+               </div>
+           </form>
+       </div>
+   </div>
+</div>
+
+<!-- Edit Announcement Modal -->
+<div class="modal fade" id="editAnnouncementModal" tabindex="-1" role="dialog" aria-labelledby="editAnnouncementModalLabel" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+       <div class="modal-content">
+           <form method="POST">
+               <div class="modal-header">
+                   <h5 class="modal-title" id="editAnnouncementModalLabel">Edit Announcement</h5>
+                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                       <span aria-hidden="true">&times;</span>
+                   </button>
+               </div>
+               <div class="modal-body">
+                   <input type="hidden" name="edit_announcement_id" id="edit_announcement_id">
+                   <div class="form-group">
+                       <label for="edit_title">Title</label>
+                       <input type="text" name="edit_title" class="form-control" id="edit_title" required>
+                   </div>
+                   <div class="form-group">
+                       <label for="edit_description">Description</label>
+                       <textarea name="edit_description" class="form-control" id="edit_description" rows="3" required></textarea>
+                   </div>
+               </div>
+               <div class="modal-footer">
+                   <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                       <i class="fas fa-times"></i> Close
+                   </button>
+                   <button type="submit" class="btn btn-primary">
+                       <i class="fas fa-save"></i> Save changes
+                   </button>
+               </div>
+           </form>
+       </div>
+   </div>
+</div>
+
+<script>
+   // JavaScript to handle showing/hiding sections
+   document.getElementById('personal-info-tab').addEventListener('click', function() {
+       document.getElementById('personal-info').style.display = 'block';
+       document.getElementById('announcement').style.display = 'none';
+       document.getElementById('section').style.display = 'none';
+   });
+
+   document.getElementById('announcement-tab').addEventListener('click', function() {
+       document.getElementById('personal-info').style.display = 'none';
+       document.getElementById('announcement').style.display = 'block';
+       document.getElementById('section').style.display = 'none';
+   });
+
+   document.getElementById('section-tab').addEventListener('click', function() {
+       document.getElementById('personal-info').style.display = 'none';
+       document.getElementById('announcement').style.display = 'none';
+       document.getElementById('section').style.display = 'block';
+   });
+
+   // JavaScript to handle filtering sections
+   document.getElementById('filter-level').addEventListener('change', filterSections);
+   document.getElementById('filter-schedule').addEventListener('change', filterSections);
+
+   function filterSections() {
+       var selectedLevel = document.getElementById('filter-level').value;
+       var selectedSchedule = document.getElementById('filter-schedule').value;
+
+       var sections = document.querySelectorAll('.section-item');
+
+       sections.forEach(function(section) {
+           var levelId = section.getAttribute('data-level-id');
+           var scheduleId = section.getAttribute('data-schedule-id');
+
+           if ((selectedLevel === '' || levelId === selectedLevel) && 
+               (selectedSchedule === '' || scheduleId === selectedSchedule)) {
+               section.style.display = 'block';
+           } else {
+               section.style.display = 'none';
+           }
+       });
+   }
+
+   // JavaScript to handle editing announcements
+   function editAnnouncement(id, title, description) {
+       document.getElementById('edit_announcement_id').value = id;
+       document.getElementById('edit_title').value = title;
+       document.getElementById('edit_description').value = description;
+       $('#editAnnouncementModal').modal('show');
+   }
+</script>
+{% endblock %}

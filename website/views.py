@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from .models import StudentInfo, User, AnnouncementTeacher, AnnouncementAdmin, Schedule, Level, Enrol, Section, Subject
 from . import db
+from datetime import datetime
 
 views = Blueprint('views', __name__)
 
@@ -15,6 +16,7 @@ def student_dashboard():
    schedules = Schedule.query.all()
    subjects_dict = {subject.id: subject.name for subject in Subject.query.all()}
    subjects = []
+   
 
 
    if request.method == 'POST':
@@ -49,8 +51,7 @@ def student_dashboard():
 
 
    return render_template('student_dashboard.html', 
-                          student=student_info,
-                          student_id=current_user.id,  
+                          student=student_info,  
                           announcements=announcements, 
                           announcements1=announcements1, 
                           levels=levels, 
@@ -64,45 +65,71 @@ def student_dashboard():
 @views.route('/teacher-dashboard', methods=['GET', 'POST'])
 @login_required
 def teacher_dashboard():
+   student_info = StudentInfo.query.filter_by(user_id=current_user.id).first()
+   announcements1 = AnnouncementAdmin.query.all()
    announcements = AnnouncementTeacher.query.all()
-   curriculums = Section.query.all()
+   levels = Level.query.all()
+   schedules = Schedule.query.all()
+   sections = Section.query.all()
 
 
    if request.method == 'POST':
        title = request.form.get('title')
        description = request.form.get('description')
 
-
        if title and description:
            new_announcement = AnnouncementTeacher(title=title, description=description, created_by=current_user.id)
            db.session.add(new_announcement)
            db.session.commit()
            flash('Announcement added successfully!', category='success')
-
-
-       elif 'announcement_id' in request.form:
-           announcement_id = request.form.get('announcement_id')
-           announcement = AnnouncementTeacher.query.get(announcement_id)
-
-
-           if announcement:
-               if AnnouncementTeacher.created_by == current_user.id:
-                   db.session.delete(announcement)
+           return redirect(url_for('views.teacher_dashboard'))
+        # Redirect after successful addition
+       
+       elif 'edit_announcement_id' in request.form:
+           edit_announcement_id = request.form.get('edit_announcement_id')
+           new_title = request.form.get('edit_title')
+           new_description = request.form.get('edit_description')
+           if edit_announcement_id and new_title and new_description:
+               announcement = AnnouncementTeacher.query.get(edit_announcement_id)
+               if announcement:
+                   announcement.title = new_title
+                   announcement.description = new_description
+                   db.session.commit()
+                   flash('Announcement updated successfully!', category='success')
+               else:
+                   flash('Announcement not found!', category='error')
+           return redirect(url_for('views.teacher_dashboard'))  # Redirect after successful addition
+       
+       
+       elif 'announcement_id1' in request.form:
+           announcement_id1 = request.form.get('announcement_id1')
+           if announcement_id1:
+               announcement1 = AnnouncementTeacher.query.get(announcement_id1)
+               if announcement1:
+                   db.session.delete(announcement1)
                    db.session.commit()
                    flash('Announcement deleted successfully!', category='success')
                else:
-                   flash('Announcement not found!', category='error') # Admin Announce could be seen
+                   flash('Announcement not found!', category='error')
+           return redirect(url_for('views.teacher_dashboard'))  # Redirect after successful addition# Redirect after successful addition
 
-
-   return render_template('teacher_dashboard.html', user=current_user, announcements=announcements, curriculums=curriculums, title='Teacher Dashboard')
-
-
+   return render_template('teacher_dashboard.html', 
+                          user=current_user, 
+                          announcements=announcements, 
+                          announcements1=announcements1, 
+                          sections=sections,
+                          student=student_info, 
+                          levels=levels, 
+                          schedules=schedules,
+                          title='Teacher Dashboard')
 
 
 @views.route('/admin-dashboard', methods=['GET', 'POST'])
 @login_required
 def admin_dashboard():
-    sections = Section.query.all()
+    # Fetch all sections for display in the existing-sections table
+    all_sections = Section.query.all()
+
     student_info = StudentInfo.query.filter_by(user_id=current_user.id).first()
     announcements = AnnouncementTeacher.query.all()
     announcements_admin = AnnouncementAdmin.query.all()
@@ -113,6 +140,8 @@ def admin_dashboard():
     users = User.query.all()
 
     student_counts = []
+    subjects1 = []
+    reserved_subject_details = []
 
     # Categorize users by role
     students = [user for user in users if user.role == 'student']
@@ -120,7 +149,18 @@ def admin_dashboard():
     admins = [user for user in users if user.role == 'admin']
 
     if request.method == 'POST':
-        if 'email' in request.form:
+        if 'delete_user' in request.form:
+           user_id = request.form.get('user_id')
+           user = User.query.get(user_id)
+           if user:
+               db.session.delete(user)
+               db.session.commit()
+               flash('User deleted successfully.', 'success')
+           else:
+               flash('User not found.', 'danger')
+           return redirect(url_for('views.admin_dashboard'))
+
+        elif 'email' in request.form:
             # Handle student info form submission (unchanged)
             email = request.form.get('email')
             last_name = request.form.get('last_name')
@@ -143,21 +183,23 @@ def admin_dashboard():
             if user:
                 student_info = StudentInfo.query.filter_by(email=email).first()
                 if student_info:
-                    student_info.last_name = last_name
-                    student_info.middle_name = middle_name
-                    student_info.first_name = first_name
-                    student_info.suffix = suffix
-                    student_info.date_of_birth = date_of_birth
-                    student_info.gender = gender
-                    student_info.nationality = nationality
-                    student_info.address = address
-                    student_info.parent_guardian_name = parent_guardian_name
-                    student_info.relationship_to_student = relationship_to_student
-                    student_info.contact_number = contact_number
-                    student_info.emergency_contact_name = emergency_contact_name
-                    student_info.emergency_relationship = emergency_relationship
-                    student_info.email_gp = email_gp
-                    student_info.emergency_contact_number = emergency_contact_number
+                    student_info.last_name = last_name or student_info.last_name
+                    student_info.middle_name = middle_name or student_info.middle_name
+                    student_info.first_name = first_name or  student_info.first_name
+                    student_info.suffix = suffix or student_info.suffix
+                    student_info.date_of_birth = date_of_birth or student_info.date_of_birth
+                    student_info.gender = gender or student_info.gender
+                    student_info.nationality = nationality or student_info.nationality
+                    student_info.address = address or student_info.address
+                    student_info.parent_guardian_name = parent_guardian_name or student_info.parent_guardian_name
+                    student_info.relationship_to_student = relationship_to_student or student_info.relationship_to_student
+                    student_info.contact_number = contact_number or student_info.contact_number
+                    student_info.emergency_contact_name = emergency_contact_name or student_info.emergency_contact_name
+                    student_info.emergency_relationship = emergency_relationship or student_info.emergency_relationship
+                    student_info.email_gp = email_gp or student_info.email_gp
+                    student_info.emergency_contact_number = emergency_contact_number or student_info.emergency_contact_number
+                    db.session.commit()
+                    flash('Section updated successfully!', category='success')
                 else:
                     student_info = StudentInfo(
                         email=email,
@@ -180,7 +222,7 @@ def admin_dashboard():
                     )
                     db.session.add(student_info)
                     db.session.commit()
-                flash('Student information has been saved successfully!', category='success')
+                flash('Personal information has been saved successfully!', category='success')
             else:
                 flash('No user found with this email address.', category='error')
             return redirect(url_for('views.admin_dashboard'))  # Redirect after successful addition
@@ -195,6 +237,36 @@ def admin_dashboard():
                 db.session.add(new_announcement)
                 db.session.commit()
                 flash('Announcement added successfully!', category='success')
+            return redirect(url_for('views.admin_dashboard'))  # Redirect after successful addition
+        
+        elif 'edit_announcement_id' in request.form:
+            edit_announcement_id = request.form.get('edit_announcement_id')
+            new_title = request.form.get('edit_title')
+            new_description = request.form.get('edit_description')
+            if edit_announcement_id and new_title and new_description:
+                announcement = AnnouncementAdmin.query.get(edit_announcement_id)
+                if announcement:
+                    announcement.title = new_title
+                    announcement.description = new_description
+                    db.session.commit()
+                    flash('Announcement updated successfully!', category='success')
+                else:
+                    flash('Announcement not found!', category='error')
+            return redirect(url_for('views.admin_dashboard'))  # Redirect after successful addition
+        
+        elif 'edit_announcement_teacher' in request.form:
+            edit_announcement_teacher = request.form.get('edit_announcement_teacher')
+            new_title_teacher = request.form.get('edit_title_teacher')
+            new_description_teacher = request.form.get('edit_description_teacher')
+            if edit_announcement_teacher and new_title_teacher and new_description_teacher:
+                announcement = AnnouncementTeacher.query.get(edit_announcement_id)
+                if announcement:
+                    announcement.title = new_title_teacher 
+                    announcement.description = new_description_teacher
+                    db.session.commit()
+                    flash('Announcement updated successfully!', category='success')
+                else:
+                    flash('Announcement not found!', category='error')
             return redirect(url_for('views.admin_dashboard'))  # Redirect after successful addition
             
 
@@ -222,6 +294,7 @@ def admin_dashboard():
                 flash('Section not found!', category='error')
 
             return redirect(url_for('views.admin_dashboard'))
+            
 
         elif 'announcement_id' in request.form:
             # Deleting announcements
@@ -364,27 +437,42 @@ def admin_dashboard():
             return redirect(url_for('views.admin_dashboard'))  # Redirect after successful addition
 
         elif 'level_id' in request.form and 'schedule_id' in request.form:
-            # Add, edit, and delete sections
-            level_id = request.form.get('level_id', type=int)
-            schedule_id = request.form.get('schedule_id', type=int)
-            subject_id = request.form.get('subject_id', type=int)
-            time_from = request.form.get('time_from')
-            time_to = request.form.get('time_to')
-            instructor = request.form.get('instructor')
+                    level_id = request.form.get('level_id', type=int)
+                    schedule_id = request.form.get('schedule_id', type=int)
+                    subject_id = request.form.get('subject_id', type=int)
+                    time_from = request.form.get('time_from')
+                    time_to = request.form.get('time_to')
+                    instructor = request.form.get('instructor')
 
-            if level_id and schedule_id and subject_id:
-                new_section = Section(
-                    level_id=level_id,
-                    schedule_id=schedule_id,
-                    subject_id=subject_id,
-                    time_from=time_from,
-                    time_to=time_to,
-                    instructor=instructor
-                )
-                db.session.add(new_section)
-                db.session.commit()
-                flash('Section added successfully!', category='success')
-            return redirect(url_for('views.admin_dashboard'))  # Redirect after successful addition
+                    # Convert time_from and time_to to datetime objects for accurate comparison
+                    time_format = "%H:%M"
+                    time_from_dt = datetime.strptime(time_from, time_format)
+                    time_to_dt = datetime.strptime(time_to, time_format)
+
+                    # Check for conflicts
+                    conflicting_sections = Section.query.filter(
+                        Section.instructor == instructor,
+                        Section.time_from <= time_to,
+                        Section.time_to >= time_from
+                    ).all()
+
+                    if conflicting_sections:
+                        flash("Conflict! Instructor is assigned to another section during this time.", category='error')
+                        return redirect(url_for('views.admin_dashboard'))  # Redirect to avoid re-submission
+
+                    if level_id and schedule_id and subject_id:
+                        new_section = Section(
+                            level_id=level_id,
+                            schedule_id=schedule_id,
+                            subject_id=subject_id,
+                            time_from=time_from,
+                            time_to=time_to,
+                            instructor=instructor
+                        )
+                        db.session.add(new_section)
+                        db.session.commit()
+                        flash('Section added successfully!', category='success')
+                    return redirect(url_for('views.admin_dashboard'))  # Redirect after successful addition
 
         elif 'edit_section_id' in request.form:
             edit_section_id = request.form.get('edit_section_id')
@@ -455,22 +543,57 @@ def admin_dashboard():
                         flash('Enrollment not found!', category='error')
                 return redirect(url_for('views.admin_dashboard'))  # Redirect after successful addition
 
-        elif 'level' in request.form and 'schedule' in request.form:
-                selected_level = request.form.get('level')
-                selected_schedule = request.form.get('schedule')
-                if selected_level and selected_schedule:
-                    sections = Section.query.filter_by(level_id=selected_level, schedule_id=selected_schedule).all()
-                    count = 0
-                    enrolled_students = []
 
-                    for section in sections:
-                        enrollments_in_section = Enrol.query.filter_by(section_id=section.id).all()
-                        count += len(enrollments_in_section)
-                        for enrol in enrollments_in_section:
-                            student = StudentInfo.query.filter_by(user_id=enrol.user_id).first()
-                            if student:
-                                enrolled_students.append(student)
-                    student_counts.append((selected_level, selected_schedule, count, enrolled_students))
+        # Fetch updated enrollments to display on the admin dashboard
+        if 'level' in request.form and 'schedule' in request.form:
+            selected_level = request.form.get('level')
+            selected_schedule = request.form.get('schedule')
+            if selected_level and selected_schedule:
+                filtered_sections = Section.query.filter_by(level_id=selected_level, schedule_id=selected_schedule).all()
+                count = 0
+                enrolled_students = []
+
+                for section in filtered_sections:
+                    enrollments_in_section = Enrol.query.filter_by(section_id=section.id).all()
+                    count += len(enrollments_in_section)
+                    for enrol in enrollments_in_section:
+                        student = StudentInfo.query.filter_by(user_id=enrol.user_id).first()
+                        if student:
+                            enrolled_students.append(student)
+
+                level_name = Level.query.filter_by(id=selected_level).first().name
+                schedule_name = Schedule.query.filter_by(id=selected_schedule).first().name
+                
+                student_counts.append((level_name, schedule_name, count, enrolled_students))
+
+
+   # Ensure that the student data is correctly prepared for rendering
+    student_data = []
+
+    # Assume student_counts is obtained from a previous query or processing
+    for level_name, schedule_name, count, students in student_counts:
+        for student in students:
+            reserved_subjects = Enrol.query.filter_by(user_id=student.user_id).all()
+            reserved_subject_details = []
+            for enrollment in reserved_subjects:
+                section = Section.query.get(enrollment.section_id)
+                if section:
+                    subject = Subject.query.get(section.subject_id)
+                    if subject:
+                        reserved_subject_details.append({
+                            'name': subject.name,
+                            'time_from': section.time_from,
+                            'time_to': section.time_to,
+                            'level_name': level_name,  # Add level_name here
+                            'schedule_name': schedule_name  # Add schedule_name here
+                        })
+            student_data.append({
+                'student': student,
+                'reserved_subject_details': reserved_subject_details,
+                'level_name': level_name,
+                'schedule_name': schedule_name,
+            })
+
 
     return render_template(
        "admin_dashboard.html",
@@ -481,15 +604,18 @@ def admin_dashboard():
        levels=levels,
        schedules=schedules,
        subjects=subjects,
-       sections=sections,
+       subjects1=subjects1,
+       sections=all_sections,
        students=students,
        teachers=teachers,
        admins=admins,
        enrollments=enrollments,
        student_counts = student_counts,
-       user = current_user
+       user = current_user,
+       reserved_subjects=reserved_subject_details,
+       student_data=student_data
    )
-    
+
 
             
 

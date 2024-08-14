@@ -83,6 +83,8 @@ class Section(db.Model):
    time_to = db.Column(db.String(5), nullable=False)    # Format: HH:MM
    instructor = db.Column(db.String(100), nullable=False)
 
+   subject = db.relationship('Subject', backref=db.backref('sections', lazy=True))
+
 
 
 class Enrol(db.Model):

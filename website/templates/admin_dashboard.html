@@ -99,6 +99,31 @@
     .card-body {
         padding: 15px; /* Add padding inside body */
     }
+    /* CSS for the down effect */
+    @keyframes slideDown {
+        0% {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    #announcements-wrapper:target #announcements-container {
+        display: block;
+        animation: slideDown 0.5s ease forwards;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    #announcements-wrapper:target #announcements-container.hidden {
+        display: block;
+    }
+
     #student-info-form,
     #add-level-form,
     #add-schedule-form,
@@ -144,20 +169,16 @@
         color: #dc3545; /* Red color on hover */
     }
     
-    
-    /* Style for the announcements container */
-    #announcements-container {
-        position: relative; /* Required for positioning the close button */
-        display: none;
-        max-height: 400px; /* Maximum height before scrolling is enabled */
-        margin-left: 20px; /* Space below the button container */
-        overflow-y: auto; /* Scroll vertically if content overflows */
-        border: 1px solid #ddd; /* Light gray border for visual separation */
-        border-radius: 5px; /* Rounded corners */
+    #announcements-wrapper {
+        width: 97%; /* Set the width to 80% of the parent container */
+        max-width: 800px; /* Optional: Set a maximum width */
+        margin: 20px auto; /* Center the wrapper horizontally and add vertical space */
+        border: 1px solid #d4d3d3; /* Light gray border for visual separation */
+        border-radius: 8px; /* Rounded corners */
         background-color: #fff; /* White background */
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-        padding: 15px; /* Padding inside the container */
-        transition: max-height 0.5s ease-out; /* Smooth transition for height change */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+        overflow: hidden; /* Ensure that any overflow is hidden */
+
     }
 
     /* Style for individual announcement containers */
@@ -166,10 +187,11 @@
         margin-bottom: 15px; /* Space between announcements */
         padding: 10px;
         border-bottom: 1px solid #ddd; /* Border between announcement items */
-        background-color: #f0e68c; /* Light yellow background */
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-        border-radius: 5px; /* Rounded corners */
+        background-color: #f9f9f9; /* Optional: Background color */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.247);
+        border-radius: 7px; /* Rounded corners */
         font-family: 'Open Sans', sans-serif; 
+        
     }
 
     /* Style for the announcement header */
@@ -239,6 +261,78 @@
     .btn-primary:hover {
         background-color: #0056b3; /* Darker blue background on hover */
     }
+    #filters-container {
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        margin-top: 30px;
+        display: block; /* Ensure the filter container is visible */
+    }
+    
+    .filters {
+        display: block; /* Ensure the filter form is displayed */
+    }
+    
+    .filters select, .filters button {
+        margin-right: 10px;
+    }
+    #sections-list-form {
+        padding-top: 20px;
+        margin-bottom: 20px; /* Space between table and filter form */
+        overflow: auto; /* Allows the container to expand if content overflows */
+        
+    }
+    #existing-sections {
+        margin-top: 20px; /* Adds space above the sections table */
+    }
+    /* Styling for the student-data section */
+    #student-data {
+        padding-top: 20px; /* Space between filter form and student data */
+        margin-top: 20px; /* Adds space between sections list and student data */
+    }
+
+    /* Styling for the table within the student data section */
+    #student-data table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    #student-data th, #student-data td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    
+    #student-data th {
+        background-color: #f2f2f2;
+    }
+    
+    .modal-body {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .subject-container {
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+    }
+    
+    .subject-container h3 {
+        margin-top: 0;
+        font-size: 1.25em;
+    }
+    
+    .subject-container p {
+        margin: 5px 0;
+    }
+    
+    .subject-container p.time {
+        font-style: italic;
+    }
 
 </style>
 
@@ -253,7 +347,9 @@
                 <button id="add-schedule-btn" class="btn btn-primary btn-block mb-3">Add Schedule<i class="fa fa-plus"></i></button>
                 <button id="add-subject-btn" class="btn btn-primary btn-block mb-3">Add Subject<i class="fa fa-plus"></i></button>
                 <button id="create-section-btn" class="btn btn-primary btn-block mb-3">Create Section Entry<i class="fa fa-calendar-plus"></i></button>
-                <button id="subjects-btn" class="btn btn-primary btn-block mb-3">Section<i class="fas fa-book-open"></i></button>
+                <button id="subjects-btn" class="btn btn-primary btn-block mb-3">Sections<i class="fas fa-book-open"></i></button>
+                <button id="students-btn" class="btn btn-primary btn-block mb-3">Students<i class="fas fa-book-open"></i></button>
+
 
                 <!-- logout button at the bottom of the sidebar -->
                <div class="logout-button">
@@ -386,16 +482,18 @@
             
             <!-- Buttons to toggle visibility -->
             <div id="announcement-buttons" style="display: none;">
-                <button id="show-announcement-btn" class="btn btn-primary">Show Announcements</button>
+                <a href="#announcements-wrapper">
+                    <button id="show-announcement-btn" class="btn btn-primary">Show Announcements</button>
+                </a>
                 <!-- Add your existing button here if needed -->
             </div>
-            
+
             <!-- Container for Existing Announcements -->
             <div id="announcements-wrapper">
-                <div id="announcements-container" style="display: none;">
+                <div id="announcements-container" class="hidden" style="display: none;">
                     <button id="close-announcements-btn" class="btn btn-close">&times;</button>
                     <div class="container">
-                        <h3>Existing Announcements</h3>
+                        <h3>My Announcements</h3>
                         {% for announcement in announcements_admin %}
                             <div class="announcement-item">
                                 <div class="announcement-header">
@@ -418,9 +516,34 @@
                                 </div>
                             </div>
                         {% endfor %}
+
+                        <h3>Teacher Announcements</h3>
+                        {% for announcement in announcements %}
+                            <div class="announcement-item">
+                                <div class="announcement-header">
+                                    <h3>{{ announcement.title }}</h3>
+                                    <div class="announcement-actions">
+                                        <form action="{{ url_for('views.admin_dashboard') }}" method="post" style="display: inline;">
+                                            <input type="hidden" name="announcement_id1" value="{{ announcement.id }}">
+                                            <button type="submit" class="delete-button btn btn-delete">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                        <!-- Edit Button -->
+                                        <button class="edit-button btn btn-edit" onclick="editAnnouncement('{{ announcement.id }}', '{{ announcement.title }}', '{{ announcement.description }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="announcement-body">
+                                    <p>{{ announcement.description }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
+
             
             <!-- Edit Announcement Form (Initially Hidden) -->
             <div id="edit-announcement-container" style="display: none;">
@@ -434,7 +557,7 @@
                         </div>
                         <div class="form-group">
                             <label for="edit_description">Description</label>
-                            <textarea id="edit_description" name="edit_description" class="form-control" rows="4" required></textarea>
+                            <textarea id="edit_description" name="edit_description" class="form-control" rows="10" required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">Update Announcement</button>
                         <button type="button" class="btn btn-secondary" onclick="hideEditForm()">Cancel</button>
@@ -655,6 +778,8 @@
         </div>
 
 
+        <!-- SECTION -->
+
        <!-- Container for Sections Table -->
        <div id="sections-list-form" style="display: none; position: relative; padding-top: 20px;">
 
@@ -796,14 +921,123 @@
                 </tbody>
             </table>
         </div>
-    
     </div>
-</div>
+
+    
+    
+    <div id="students-section" style="display: none;">
+        <div id="filters-container">
+            <div id="filters">
+                <form method="POST" action="{{ url_for('views.admin_dashboard') }}">
+                    <label for="level">Select Level:</label>
+                    <select name="level" id="level" required>
+                        <option value="">Choose a level</option>
+                        {% for level in levels %}
+                            <option value="{{ level.id }}">{{ level.name }}</option>
+                        {% endfor %}
+                    </select>
+            
+                    <label for="schedule">Select Schedule:</label>
+                    <select name="schedule" id="schedule" required>
+                        <option value="">Choose a schedule</option>
+                        {% for schedule in schedules %}
+                            <option value="{{ schedule.id }}">{{ schedule.name }}</option>
+                        {% endfor %}
+                    </select>
+            
+                    <button type="submit" class="btn btn-primary" name="action" value="filter">Filter</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Display Filtered Student Data -->
+        {% if student_data %}
+            <div id="student-data">
+                <h2>Filtered Student List</h2>
+                <table id="student-table" class="table-container">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Level</th>
+                            <th>Schedule</th>
+                            <th>Actions</th> <!-- New column for Actions -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in student_data %}
+                            {% set student = data.student %}
+                            {% set reserved_subject_details = data.reserved_subject_details %}
+                            {% set level_name = data.level_name %}
+                            {% set schedule_name = data.schedule_name %}
+                            <tr>
+                                <td>{{ student.first_name }} {{ student.last_name }}</td>
+                                <td>{{ level_name }}</td>
+                                <td>{{ schedule_name }}</td>
+                                <td>
+                                    <!-- Button to trigger modal -->
+                                    <button type="button" class="btn btn-info" data-toggle="modal" data-target="#reservedSubjectsModal-{{ student.user_id }}">
+                                        👁️
+                                    </button>
+                                </td>
+                            </tr>
+    
+                            <!-- Modal Dialog for Reserved Subjects -->
+                            <div class="modal fade" id="reservedSubjectsModal-{{ student.user_id }}" tabindex="-1" role="dialog" aria-labelledby="reservedSubjectsModalLabel-{{ student.user_id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="reservedSubjectsModalLabel-{{ student.user_id }}">Reserved Subjects for {{ student.first_name }} {{ student.last_name }}</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            {% if reserved_subject_details %}
+                                                <div id="enrollment-status-list">
+                                                    <ul>
+                                                        {% for subject in reserved_subject_details %}
+                                                            <li class="subject-container">
+                                                                <h3>{{ subject.name }}</h3>
+                                                                <p>Level: {{ subject.level_name }}</p>
+                                                                <p>Schedule: {{ subject.schedule_name }}</p>
+                                                                <p class="time">Time From: {{ subject.time_from }}</p>
+                                                                <p class="time">Time To: {{ subject.time_to }}</p>
+                                                                <p>Instructor: {{ subject.instructor }}</p>
+
+                                                                
+        
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% else %}
+                                                <p>No reserved subjects available.</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div id="student-data">
+                <h2>Filtered Student List</h2>
+                <p>No students found for the selected level and schedule.</p>
+            </div>
+        {% endif %}
+    </div>
+      
+</div> <!--last div -->
 
         
 <script>
     document.getElementById('student-info-btn').addEventListener('click', function() {
-        document.getElementById('student-info-container').style.display = 'block'
+        document.getElementById('student-info-container').style.display = 'block';
         document.getElementById('add-announcement-container').style.display = 'none';
         document.getElementById('announcements-container').style.display = 'none';
         document.getElementById('announcement-buttons').style.display = 'none';
@@ -814,7 +1048,7 @@
         document.getElementById('sections-table').style.display = 'none';
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
-
+        document.getElementById('students-section').style.display = 'none';
     });
 
     document.getElementById('add-level-btn').addEventListener('click', function() {
@@ -828,6 +1062,7 @@
         document.getElementById('create-section-form').style.display = 'none';
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
+        document.getElementById('students-section').style.display = 'none';
     });
 
     document.getElementById('add-schedule-btn').addEventListener('click', function() {
@@ -841,7 +1076,7 @@
         document.getElementById('create-section-form').style.display = 'none';
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
-
+        document.getElementById('students-section').style.display = 'none';
     });
 
     document.getElementById('add-subject-btn').addEventListener('click', function() {
@@ -855,6 +1090,7 @@
         document.getElementById('create-section-form').style.display = 'none';
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
+        document.getElementById('students-section').style.display = 'none';
     });
 
     document.getElementById('create-section-btn').addEventListener('click', function() {
@@ -868,12 +1104,13 @@
         document.getElementById('add-level-form').style.display = 'none';
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
-
+        document.getElementById('students-section').style.display = 'none';
     });
 
     document.getElementById('subjects-btn').addEventListener('click', function() {
         document.getElementById('sections-list-form').style.display = 'block';
         document.getElementById('existing-sections').style.display = 'block';
+        document.getElementById('students-section').style.display = 'none';
         document.getElementById('create-section-form').style.display = 'none';
         document.getElementById('student-info-container').style.display = 'none';
         document.getElementById('add-announcement-container').style.display = 'none';
@@ -889,7 +1126,23 @@
         document.getElementById('add-announcement-container').style.display = 'block';
         document.getElementById('announcement-buttons').style.display = 'block';
         document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('students-section').style.display = 'none';
+        // Hide other sections as needed
         document.getElementById('student-info-container').style.display = 'none';
+        document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('add-subject-form').style.display = 'none';
+        document.getElementById('add-schedule-form').style.display = 'none';
+        document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('existing-sections').style.display = 'none';
+    });
+
+    document.getElementById('students-btn').addEventListener('click', function() {
+        document.getElementById('students-section').style.display = 'block';
+        document.getElementById('student-info-container').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'none';
         document.getElementById('create-section-form').style.display = 'none';
         document.getElementById('add-subject-form').style.display = 'none';
         document.getElementById('add-schedule-form').style.display = 'none';
@@ -907,6 +1160,10 @@
         document.getElementById('announcement-buttons').style.display = 'block';
     });
 
+    document.getElementById('close-reserved-btn').addEventListener('click', function() {
+        document.getElementById('reserved-subjects-modal').style.display = 'none';
+    });
+
     function editAnnouncement(id, title, description) {
         document.getElementById('edit_announcement_id').value = id;
         document.getElementById('edit_title').value = title;
@@ -914,14 +1171,10 @@
         document.getElementById('announcements-container').style.display = 'none';
         document.getElementById('edit-announcement-container').style.display = 'block';
     }
-    
+
     function hideEditForm() {
         document.getElementById('edit-announcement-container').style.display = 'none';
         document.getElementById('announcements-container').style.display = 'block';
     }
 </script>
-
-
-
-   
 {% endblock %}
