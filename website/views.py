@@ -150,15 +150,25 @@ def admin_dashboard():
 
     if request.method == 'POST':
         if 'delete_user' in request.form:
-           user_id = request.form.get('user_id')
-           user = User.query.get(user_id)
-           if user:
-               db.session.delete(user)
-               db.session.commit()
-               flash('User deleted successfully.', 'success')
-           else:
-               flash('User not found.', 'danger')
-           return redirect(url_for('views.admin_dashboard'))
+            user_id = request.form.get('user_id')
+            user = User.query.get(user_id)
+            if user:
+                # Find and delete all enrollments associated with the user
+                enrollments = Enrol.query.filter_by(user_id=user_id).all()
+                for enrol in enrollments:
+                    db.session.delete(enrol)
+                
+                # Commit the deletion of the enrollments
+                db.session.commit()
+
+                # Delete the user
+                db.session.delete(user)
+                db.session.commit()
+                flash('User and associated enrollments deleted successfully.', 'success')
+            else:
+                flash('User not found.', 'danger')
+            return redirect(url_for('views.admin_dashboard'))
+
 
         elif 'email' in request.form:
             # Handle student info form submission (unchanged)

@@ -333,6 +333,47 @@
     .subject-container p.time {
         font-style: italic;
     }
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 16px;
+        text-align: left;
+    }
+    
+    .users-table th, .users-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    
+    .users-table th {
+        background-color: #f4f4f4;
+        color: #333;
+    }
+    
+    .users-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    
+    .users-table tr:hover {
+        background-color: #f1f1f1;
+    }
+    
+    .users-table td form {
+        margin: 0;
+    }
+    
+    .users-table button {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+    
+    .users-table button:hover {
+        background-color: #c62828;
+    }
 
 </style>
 
@@ -341,7 +382,7 @@
         <!-- Sidebar -->
         <div class="col-md-3">
             <div class="sidebar">
-                <button id="student-info-btn" class="btn btn-primary btn-block mb-3">Student Info<i class="fa fa-user"></i></button>
+                <button id="student-info-btn" class="btn btn-primary btn-block mb-3">Personal Info<i class="fa fa-user"></i></button>
                 <button id="announcements-btn" class="btn btn-primary btn-block mb-3">Announcements<i class="fa fa-bell"></i></button>
                 <button id="add-level-btn" class="btn btn-primary btn-block mb-3">Add Level<i class="fa fa-plus"></i></button>
                 <button id="add-schedule-btn" class="btn btn-primary btn-block mb-3">Add Schedule<i class="fa fa-plus"></i></button>
@@ -349,7 +390,7 @@
                 <button id="create-section-btn" class="btn btn-primary btn-block mb-3">Create Section Entry<i class="fa fa-calendar-plus"></i></button>
                 <button id="subjects-btn" class="btn btn-primary btn-block mb-3">Sections<i class="fas fa-book-open"></i></button>
                 <button id="students-btn" class="btn btn-primary btn-block mb-3">Students<i class="fas fa-book-open"></i></button>
-
+                <button id="users-btn" class="btn btn-primary btn-block mb-3">Users<i class="fas fa-book-open"></i></button>
 
                 <!-- logout button at the bottom of the sidebar -->
                <div class="logout-button">
@@ -386,7 +427,7 @@
               
             <div id="student-info-container" class="student-info-container" style="display: none;">
                 <div class="card-header">
-                    <h2>Student Information</h2>
+                    <h2>Personal Information Handler</h2>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('views.admin_dashboard') }}">
@@ -1002,9 +1043,7 @@
                                                                 <p>Schedule: {{ subject.schedule_name }}</p>
                                                                 <p class="time">Time From: {{ subject.time_from }}</p>
                                                                 <p class="time">Time To: {{ subject.time_to }}</p>
-                                                                <p>Instructor: {{ subject.instructor }}</p>
-
-                                                                
+                                                                <p>Instructor: {{ subject.instructor }}</p>  
         
                                                             </li>
                                                         {% endfor %}
@@ -1031,7 +1070,35 @@
             </div>
         {% endif %}
     </div>
-      
+
+    <div id="users-list" style="display: none;">
+        <h2>Users List</h2>
+        
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role }}</td>
+                    <td>
+                        <form action="{{ url_for('views.admin_dashboard') }}" method="post">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <button type="submit" name="delete_user">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+     
 </div> <!--last div -->
 
         
@@ -1041,6 +1108,7 @@
         document.getElementById('add-announcement-container').style.display = 'none';
         document.getElementById('announcements-container').style.display = 'none';
         document.getElementById('announcement-buttons').style.display = 'none';
+        document.getElementById('edit-announcement-container').style.display = 'none';
         document.getElementById('add-level-form').style.display = 'none';
         document.getElementById('add-schedule-form').style.display = 'none';
         document.getElementById('add-subject-form').style.display = 'none';
@@ -1049,6 +1117,7 @@
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
         document.getElementById('students-section').style.display = 'none';
+        document.getElementById('users-list').style.display = 'none';
     });
 
     document.getElementById('add-level-btn').addEventListener('click', function() {
@@ -1063,6 +1132,8 @@
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
         document.getElementById('students-section').style.display = 'none';
+        document.getElementById('users-list').style.display = 'none';
+        document.getElementById('edit-announcement-container').style.display = 'none';
     });
 
     document.getElementById('add-schedule-btn').addEventListener('click', function() {
@@ -1077,6 +1148,8 @@
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
         document.getElementById('students-section').style.display = 'none';
+        document.getElementById('users-list').style.display = 'none';
+        document.getElementById('edit-announcement-container').style.display = 'none';
     });
 
     document.getElementById('add-subject-btn').addEventListener('click', function() {
@@ -1091,6 +1164,8 @@
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
         document.getElementById('students-section').style.display = 'none';
+        document.getElementById('users-list').style.display = 'none';
+        document.getElementById('edit-announcement-container').style.display = 'none';
     });
 
     document.getElementById('create-section-btn').addEventListener('click', function() {
@@ -1105,6 +1180,8 @@
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
         document.getElementById('students-section').style.display = 'none';
+        document.getElementById('users-list').style.display = 'none';
+        document.getElementById('edit-announcement-container').style.display = 'none';
     });
 
     document.getElementById('subjects-btn').addEventListener('click', function() {
@@ -1120,6 +1197,8 @@
         document.getElementById('add-schedule-form').style.display = 'none';
         document.getElementById('student-info-container').style.display = 'none';
         document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('users-list').style.display = 'none';
+        document.getElementById('edit-announcement-container').style.display = 'none';
     });
 
     document.getElementById('announcements-btn').addEventListener('click', function() {
@@ -1135,6 +1214,7 @@
         document.getElementById('add-level-form').style.display = 'none';
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
+        document.getElementById('users-list').style.display = 'none';
     });
 
     document.getElementById('students-btn').addEventListener('click', function() {
@@ -1142,6 +1222,7 @@
         document.getElementById('student-info-container').style.display = 'none';
         document.getElementById('add-announcement-container').style.display = 'none';
         document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('edit-announcement-container').style.display = 'none';
         document.getElementById('announcement-buttons').style.display = 'none';
         document.getElementById('create-section-form').style.display = 'none';
         document.getElementById('add-subject-form').style.display = 'none';
@@ -1149,6 +1230,23 @@
         document.getElementById('add-level-form').style.display = 'none';
         document.getElementById('sections-list-form').style.display = 'none';
         document.getElementById('existing-sections').style.display = 'none';
+        document.getElementById('users-list').style.display = 'none';
+        
+    });
+    document.getElementById('users-btn').addEventListener('click', function() {
+        document.getElementById('students-section').style.display = 'none';
+        document.getElementById('student-info-container').style.display = 'none';
+        document.getElementById('add-announcement-container').style.display = 'none';
+        document.getElementById('announcements-container').style.display = 'none';
+        document.getElementById('edit-announcement-container').style.display = 'none';
+        document.getElementById('announcement-buttons').style.display = 'none';
+        document.getElementById('create-section-form').style.display = 'none';
+        document.getElementById('add-subject-form').style.display = 'none';
+        document.getElementById('add-schedule-form').style.display = 'none';
+        document.getElementById('add-level-form').style.display = 'none';
+        document.getElementById('sections-list-form').style.display = 'none';
+        document.getElementById('existing-sections').style.display = 'none';
+        document.getElementById('users-list').style.display = 'block';
     });
 
     document.getElementById('show-announcement-btn').addEventListener('click', function() {

@@ -58,10 +58,10 @@
                     <a class="nav-item nav-link" href="{{ url_for('views.teacher_dashboard') }}" style="color:  rgb(56, 56, 56);">Teacher Dashboard</a>
                 {% elif current_user.role == 'admin' %}
                     <a class="nav-item nav-link" href="{{ url_for('views.admin_dashboard') }}" style="color:  rgb(56, 56, 56);">Admin Dashboard</a>
+                    <a class="nav-item nav-link" href="{{ url_for('auth.sign_up') }}" style="color:  rgb(56, 56, 56);">Sign Up</a>
                 {% endif %}
             {% else %}
                 <a class="nav-item nav-link" href="{{ url_for('auth.login') }}" style="color: rgb(56, 56, 56);">Login</a>
-                <a class="nav-item nav-link" href="{{ url_for('auth.sign_up') }}" style="color:  rgb(56, 56, 56);">Sign Up</a>
             {% endif %}
         </div>
     </div>
